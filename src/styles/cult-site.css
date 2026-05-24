@@ -294,63 +294,6 @@ body.cult-theme {
     0 24px 60px rgba(0, 0, 0, 0.45);
 }
 
-/* Roadmap */
-.cult-site-mode .roadmap-shell {
-  width: min(1480px, 94%);
-  margin: 0 auto;
-  padding: clamp(24px, 4vh, 48px) 0 clamp(48px, 6vh, 80px);
-  background: transparent;
-}
-
-.cult-site-mode .roadmap-head h2 {
-  font-family: 'Orbitron', 'Inter', sans-serif;
-  font-size: clamp(1.5rem, 3vw, 2.2rem);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  margin: 0 0 10px;
-}
-
-.cult-site-mode .roadmap-head p {
-  color: var(--cult-muted);
-  font-weight: 500;
-}
-
-.cult-site-mode .roadmap-card-live {
-  background: var(--cult-panel);
-  border: 1px solid var(--cult-border);
-  border-radius: 14px;
-  backdrop-filter: blur(14px);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
-}
-
-.cult-site-mode .roadmap-meta h3 {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 1rem;
-  letter-spacing: 0.04em;
-}
-
-.cult-site-mode .roadmap-meta p {
-  color: var(--cult-muted);
-}
-
-.cult-site-mode .roadmap-status.planned {
-  background: rgba(59, 130, 246, 0.2);
-  border-color: rgba(96, 165, 250, 0.5);
-  color: #dbeafe;
-}
-
-.cult-site-mode .roadmap-status.active {
-  background: rgba(255, 90, 40, 0.2);
-  border-color: rgba(255, 120, 60, 0.55);
-  color: #ffe4d6;
-}
-
-.cult-site-mode .roadmap-status.done {
-  background: rgba(16, 185, 129, 0.2);
-  border-color: rgba(52, 211, 153, 0.5);
-  color: #d1fae5;
-}
-
 /* Memes */
 .cult-site-mode .memes-shell {
   width: min(1480px, 94%);

@@ -117,7 +117,6 @@ export default function HomePage() {
           <div className="cult-bar-col">
             <h3>{homeBar.ticker.title}</h3>
             <p className="cult-ticker">
-              <span className="cult-ticker-icon" aria-hidden="true">▮</span>
               {homeBar.ticker.symbol ? <strong>{homeBar.ticker.symbol}</strong> : null}
               {homeBar.ticker.contract_address ? (
                 <span className="cult-ca">CA: {homeBar.ticker.contract_address}</span>

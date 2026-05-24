@@ -1,17 +1,76 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { getPublicRoadmap } from '../api/client';
+import { resolveRoadmapPhases } from '../utils/roadmapPhases';
+import './RoadmapPage.css';
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8000/api';
-const API_ORIGIN = API_BASE.replace(/\/api\/?$/, '');
+function PhaseCardBody({ phase, expanded, onToggle }) {
+  return (
+    <div className={`roadmap-phase-card ${expanded ? 'is-expanded' : ''}`}>
+      <div className="roadmap-phase-accent" aria-hidden="true" />
+      <div className="roadmap-phase-body">
+        <div className="roadmap-phase-top">
+          <span className="roadmap-phase-label">{phase.phase}</span>
+          <button
+            type="button"
+            className="roadmap-phase-expand"
+            aria-expanded={expanded}
+            aria-label={expanded ? 'Collapse details' : 'Expand details'}
+            onClick={onToggle}
+          >
+            {expanded ? '−' : '+'}
+          </button>
+        </div>
+        <h2>{phase.title}</h2>
+        {phase.period ? <span className="roadmap-phase-period">{phase.period}</span> : null}
+        <p className="roadmap-phase-desc">{phase.description || 'Details coming soon.'}</p>
+        <button type="button" className="roadmap-phase-details" onClick={onToggle}>
+          <span>{expanded ? 'HIDE DETAILS' : 'VIEW DETAILS'}</span>
+          <span className="roadmap-phase-details-arrow" aria-hidden="true">→</span>
+        </button>
+      </div>
+    </div>
+  );
+}
 
-function withApiOrigin(url) {
-  if (!url) return '';
-  if (url.startsWith('http://') || url.startsWith('https://')) return url;
-  return `${API_ORIGIN}${url.startsWith('/') ? '' : '/'}${url}`;
+function PhaseCard({ phase }) {
+  const [expanded, setExpanded] = useState(false);
+  const onToggle = () => setExpanded((v) => !v);
+  const isLeft = phase.side === 'left';
+
+  return (
+    <article className={`roadmap-phase roadmap-phase--${phase.accent} roadmap-phase--${phase.side}`}>
+      <div className="roadmap-phase-row">
+        <div className="roadmap-phase-half roadmap-phase-half--start">
+          {isLeft ? (
+            <>
+              <div className="roadmap-phase-card-wrap">
+                <PhaseCardBody phase={phase} expanded={expanded} onToggle={onToggle} />
+              </div>
+              <span className="roadmap-phase-connector" aria-hidden="true" />
+            </>
+          ) : null}
+        </div>
+
+        <div className="roadmap-phase-node" aria-hidden="true" />
+
+        <div className="roadmap-phase-half roadmap-phase-half--end">
+          {!isLeft ? (
+            <>
+              <span className="roadmap-phase-connector" aria-hidden="true" />
+              <div className="roadmap-phase-card-wrap">
+                <PhaseCardBody phase={phase} expanded={expanded} onToggle={onToggle} />
+              </div>
+            </>
+          ) : null}
+        </div>
+      </div>
+    </article>
+  );
 }
 
 export default function RoadmapPage() {
-  const [rows, setRows] = useState([]);
+  const [phases, setPhases] = useState(() => resolveRoadmapPhases([]));
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -19,7 +78,7 @@ export default function RoadmapPage() {
     getPublicRoadmap()
       .then((data) => {
         if (!live) return;
-        setRows(Array.isArray(data) ? data : []);
+        setPhases(resolveRoadmapPhases(data));
       })
       .catch((err) => setError(err.message));
     return () => {
@@ -28,26 +87,47 @@ export default function RoadmapPage() {
   }, []);
 
   return (
-    <section className="roadmap-shell cult-page-shell">
-      <header className="roadmap-head cult-page-head">
-        <h2>Roadmap</h2>
-        <p>Live milestones managed from admin panel.</p>
-      </header>
+    <>
+      <div className="roadmap-page-bg" aria-hidden="true" />
+      <div className="roadmap-page">
+        <div className="roadmap-page-inner">
+          <header className="roadmap-page-head">
+            <span className="roadmap-page-tag">Roadmap</span>
+            <h1>
+              OUR JOURNEY <span className="roadmap-accent">AHEAD</span>
+            </h1>
+            <p>
+              Building the future of memes, communities, and culture. One phase at a time.
+            </p>
+          </header>
 
-      {error ? <p className="error">{error}</p> : null}
+          {error ? <p className="roadmap-page-error">{error}</p> : null}
 
-      <div className="roadmap-grid-live">
-        {rows.map((item) => (
-          <article className="roadmap-card-live" key={item.id}>
-            {item.image ? <img src={withApiOrigin(item.image)} alt={item.title} className="roadmap-thumb" /> : null}
-            <div className="roadmap-meta">
-              <span className={`roadmap-status ${item.status || 'planned'}`}>{item.status || 'planned'}</span>
-              <h3>{item.title}</h3>
-              <p>{item.description || 'No description yet.'}</p>
+          <div className="roadmap-timeline">
+            <div className="roadmap-timeline-line" aria-hidden="true" />
+            <div className="roadmap-phases">
+              {phases.map((phase) => (
+                <PhaseCard key={phase.id} phase={phase} />
+              ))}
             </div>
-          </article>
-        ))}
+          </div>
+
+          <footer className="roadmap-page-cta">
+            <div className="roadmap-page-cta-avatar">
+              <img src="/images/avatar.png" alt="" />
+            </div>
+            <div className="roadmap-page-cta-text">
+              <h3>
+                THE FUTURE IS <span className="roadmap-accent">MEME</span>
+              </h3>
+              <p>We&apos;re just getting started. Join the cult and be part of history.</p>
+            </div>
+            <Link to="/login" className="roadmap-page-cta-btn">
+              JOIN THE CULT →
+            </Link>
+          </footer>
+        </div>
       </div>
-    </section>
+    </>
   );
 }

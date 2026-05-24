@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { getPublicSiteConfig } from './api/client';
 import NavBar from './components/NavBar';
@@ -19,10 +19,14 @@ import AdminPageBuilder from './pages/AdminPageBuilder';
 import AdminRoute from './components/AdminRoute';
 import './App.css';
 
+const BOOT_LAST_SEEN_KEY = 'memecult_loader_last_seen_at';
+const INTRO_VIDEO_FALLBACK = '/initial%20video.mp4';
+
 export default function App() {
   const location = useLocation();
-  const [bootResolved, setBootResolved] = useState(false);
-  const [showBootLoader, setShowBootLoader] = useState(false);
+  const introVideoRef = useRef(null);
+  /** checking → loader | video | idle */
+  const [bootPhase, setBootPhase] = useState('checking');
   const [canEnterSite, setCanEnterSite] = useState(false);
   const [loaderTextIndex, setLoaderTextIndex] = useState(0);
   const [loaderGifSrc, setLoaderGifSrc] = useState('/images/loading-transparent.gif');
@@ -30,6 +34,7 @@ export default function App() {
   const [loaderBgColor, setLoaderBgColor] = useState('#E3F7FD');
   const [loaderBgMedia, setLoaderBgMedia] = useState('');
   const [loaderFrequencyHours, setLoaderFrequencyHours] = useState(24);
+  const [introVideoSrc, setIntroVideoSrc] = useState(INTRO_VIDEO_FALLBACK);
   const isHome = location.pathname === '/';
   const isAdmin = location.pathname.startsWith('/admin');
   const isEditor = location.pathname === '/editor';
@@ -76,8 +81,7 @@ export default function App() {
 
   useEffect(() => {
     if (isAdmin || isAuthPage) {
-      setBootResolved(true);
-      setShowBootLoader(false);
+      setBootPhase('idle');
       return undefined;
     }
 
@@ -136,21 +140,21 @@ export default function App() {
         if (cfg?.loader_background_type) setLoaderBgType(cfg.loader_background_type);
         if (cfg?.loader_background_color) setLoaderBgColor(cfg.loader_background_color);
         if (cfg?.loader_background_media) setLoaderBgMedia(normalize(cfg.loader_background_media));
+        const introUrl = cfg?.intro_video ? normalize(cfg.intro_video) : INTRO_VIDEO_FALLBACK;
+        setIntroVideoSrc(introUrl);
         const frequencyHours = Math.max(1, Number(cfg?.loader_frequency_hours || 24));
         setLoaderFrequencyHours(frequencyHours);
-        const lastSeen = Number(localStorage.getItem('memecult_loader_last_seen_at') || 0);
+        const lastSeen = Number(localStorage.getItem(BOOT_LAST_SEEN_KEY) || 0);
         const now = Date.now();
         const shouldShow = !lastSeen || now - lastSeen >= frequencyHours * 60 * 60 * 1000;
-        setShowBootLoader(shouldShow);
-        setBootResolved(true);
+        setBootPhase(shouldShow ? 'loader' : 'idle');
       })
       .catch(() => {
         if (!mounted) return;
-        const lastSeen = Number(localStorage.getItem('memecult_loader_last_seen_at') || 0);
+        const lastSeen = Number(localStorage.getItem(BOOT_LAST_SEEN_KEY) || 0);
         const now = Date.now();
         const shouldShow = !lastSeen || now - lastSeen >= 24 * 60 * 60 * 1000;
-        setShowBootLoader(shouldShow);
-        setBootResolved(true);
+        setBootPhase(shouldShow ? 'loader' : 'idle');
       });
 
     return () => {
@@ -172,11 +176,36 @@ export default function App() {
     return () => window.clearInterval(timer);
   }, [canEnterSite]);
 
-  function enterSite() {
-    if (!canEnterSite) return;
-    localStorage.setItem('memecult_loader_last_seen_at', String(Date.now()));
-    setShowBootLoader(false);
+  function finishBootSequence() {
+    localStorage.setItem(BOOT_LAST_SEEN_KEY, String(Date.now()));
+    setBootPhase('idle');
+    const video = introVideoRef.current;
+    if (video) {
+      video.pause();
+      video.currentTime = 0;
+    }
   }
+
+  function enterLoader() {
+    if (!canEnterSite) return;
+    if (introVideoSrc) {
+      setBootPhase('video');
+      return;
+    }
+    finishBootSequence();
+  }
+
+  useEffect(() => {
+    if (bootPhase !== 'video') return undefined;
+    const video = introVideoRef.current;
+    if (!video) return undefined;
+    video.muted = false;
+    const playPromise = video.play();
+    if (playPromise && typeof playPromise.catch === 'function') {
+      playPromise.catch(() => {});
+    }
+    return undefined;
+  }, [bootPhase]);
 
   const loaderLines = [
     'Loading...',
@@ -185,19 +214,20 @@ export default function App() {
     'Almost there...',
   ];
 
-  const bootChecking = !bootResolved;
-  const loaderVisible = bootResolved && showBootLoader;
-  const siteHidden = bootChecking || loaderVisible;
+  const bootChecking = bootPhase === 'checking';
+  const loaderVisible = bootPhase === 'loader';
+  const videoVisible = bootPhase === 'video';
+  const siteHidden = bootChecking || loaderVisible || videoVisible;
 
   return (
     <div
-      className={`app-shell ${isHome ? 'home-mode' : ''} ${isCultThemed ? 'cult-site-mode' : ''} ${bootChecking ? 'boot-checking' : ''} ${loaderVisible ? 'boot-loading' : ''}`}
+      className={`app-shell ${isHome ? 'home-mode' : ''} ${isCultThemed ? 'cult-site-mode' : ''} ${bootChecking ? 'boot-checking' : ''} ${loaderVisible ? 'boot-loading' : ''} ${videoVisible ? 'boot-video' : ''}`}
     >
       {loaderVisible ? (
         <div
           className={`boot-loader-overlay ${canEnterSite ? 'can-enter' : ''}`}
           aria-label="Loading"
-          onClick={enterSite}
+          onClick={enterLoader}
           style={
             loaderBgType === 'color'
               ? { background: loaderBgColor || '#E3F7FD' }
@@ -213,6 +243,25 @@ export default function App() {
             <p className="boot-loader-text">
               {canEnterSite ? 'Touch anywhere to enter' : loaderLines[loaderTextIndex]}
             </p>
+          </div>
+        </div>
+      ) : null}
+
+      {videoVisible ? (
+        <div className="intro-video-overlay" aria-label="Intro video">
+          <video
+            ref={introVideoRef}
+            className="intro-video-player"
+            src={introVideoSrc}
+            key={introVideoSrc}
+            playsInline
+            preload="auto"
+            onEnded={finishBootSequence}
+          />
+          <div className="intro-video-actions">
+            <button type="button" className="intro-video-skip" onClick={finishBootSequence}>
+              Skip → Home
+            </button>
           </div>
         </div>
       ) : null}

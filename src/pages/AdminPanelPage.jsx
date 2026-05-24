@@ -284,6 +284,8 @@ export default function AdminPanelPage() {
   const [selectedRoadmap, setSelectedRoadmap] = useState([]);
   const [roadTitle, setRoadTitle] = useState('');
   const [roadDesc, setRoadDesc] = useState('');
+  const [roadPhase, setRoadPhase] = useState('');
+  const [roadPeriod, setRoadPeriod] = useState('');
   const [roadStatus, setRoadStatus] = useState('planned');
   const [roadImage, setRoadImage] = useState(null);
   const [roadCreateModalOpen, setRoadCreateModalOpen] = useState(false);
@@ -310,6 +312,9 @@ export default function AdminPanelPage() {
   const [loaderGifFile, setLoaderGifFile] = useState(null);
   const [loaderBgFile, setLoaderBgFile] = useState(null);
   const [loaderGifUrl, setLoaderGifUrl] = useState('');
+  const [introVideoFile, setIntroVideoFile] = useState(null);
+  const [introVideoUrl, setIntroVideoUrl] = useState('');
+  const [clearIntroVideo, setClearIntroVideo] = useState(false);
   const [loaderBgUrl, setLoaderBgUrl] = useState('');
   const [loaderBgHex, setLoaderBgHex] = useState('#E3F7FD');
   const [loaderFrequencyHours, setLoaderFrequencyHours] = useState(24);
@@ -344,6 +349,9 @@ export default function AdminPanelPage() {
   const [assetEditFile, setAssetEditFile] = useState(null);
   const [roadEditModal, setRoadEditModal] = useState(null);
   const [roadEditTitle, setRoadEditTitle] = useState('');
+  const [roadEditDesc, setRoadEditDesc] = useState('');
+  const [roadEditPhase, setRoadEditPhase] = useState('');
+  const [roadEditPeriod, setRoadEditPeriod] = useState('');
   const [roadEditImage, setRoadEditImage] = useState(null);
   const [confirmModal, setConfirmModal] = useState(null);
   const assetReqRef = useRef(0);
@@ -542,25 +550,34 @@ export default function AdminPanelPage() {
     const fd = new FormData();
     fd.append('title', roadTitle);
     fd.append('description', roadDesc);
+    fd.append('phase', roadPhase);
+    fd.append('period', roadPeriod);
     fd.append('status', roadStatus);
     if (roadImage) fd.append('image', roadImage);
     await adminCreateRoadmap(fd);
     setRoadTitle('');
     setRoadDesc('');
+    setRoadPhase('');
+    setRoadPeriod('');
     setRoadStatus('planned');
     setRoadImage(null);
     await loadRoadmap(roadPage, roadSearch);
   }
 
   async function editRoadmap(item) {
-    const title = (roadEditTitle || '').trim();
-    if ((!title && !roadEditImage) || !roadEditModal) return;
+    if (!roadEditModal) return;
     const fd = new FormData();
-    if (title) fd.append('title', title);
+    fd.append('title', (roadEditTitle || '').trim() || item.title || '');
+    fd.append('description', roadEditDesc);
+    fd.append('phase', roadEditPhase);
+    fd.append('period', roadEditPeriod);
     if (roadEditImage) fd.append('image', roadEditImage);
     await adminUpdateRoadmap(roadEditModal.id, fd);
     setRoadEditModal(null);
     setRoadEditTitle('');
+    setRoadEditDesc('');
+    setRoadEditPhase('');
+    setRoadEditPeriod('');
     setRoadEditImage(null);
     await loadRoadmap(roadPage, roadSearch);
   }
@@ -604,8 +621,11 @@ export default function AdminPanelPage() {
       setLoaderBgType(row.loader_background_type || 'color');
       setLoaderBgColor(row.loader_background_color || '#E3F7FD');
       setLoaderBgHex(row.loader_background_color || '#E3F7FD');
-      setLoaderGifUrl(row.loader_gif || '');
-      setLoaderBgUrl(row.loader_background_media || '');
+      setLoaderGifUrl(normalizeMediaUrl(row.loader_gif) || '');
+      setIntroVideoUrl(normalizeMediaUrl(row.intro_video) || '');
+      setIntroVideoFile(null);
+      setClearIntroVideo(false);
+      setLoaderBgUrl(normalizeMediaUrl(row.loader_background_media) || '');
       setSiteLogoUrl(normalizeMediaUrl(row.site_logo) || '');
       setFooterLogoUrl(normalizeMediaUrl(row.footer_logo) || '');
       setLoaderFrequencyHours(Number(row.loader_frequency_hours || 24));
@@ -620,6 +640,8 @@ export default function AdminPanelPage() {
       setFooterLogoFile(null);
       setLoaderGifFile(null);
       setLoaderBgFile(null);
+      setIntroVideoFile(null);
+      setClearIntroVideo(false);
       const hero = row.hero_content || {};
       setSiteHeroContent({
         cards_heading: hero.cards_heading || DEFAULT_HERO_CONTENT.cards_heading,
@@ -672,6 +694,9 @@ export default function AdminPanelPage() {
     setFooterLogoFile(null);
     setLoaderGifFile(null);
     setLoaderBgFile(null);
+    setIntroVideoUrl('');
+    setIntroVideoFile(null);
+    setClearIntroVideo(false);
     setSiteHeroContent(DEFAULT_HERO_CONTENT);
     setSiteHeroCardFiles([]);
     setSiteHeroCardClear([]);
@@ -894,7 +919,11 @@ export default function AdminPanelPage() {
     fd.append('loader_frequency_hours', String(Math.max(1, Number(loaderFrequencyHours || 24))));
     if (loaderGifFile) fd.append('loader_gif', loaderGifFile);
     if (loaderBgFile) fd.append('loader_background_media', loaderBgFile);
+    if (introVideoFile) fd.append('intro_video', introVideoFile);
+    if (clearIntroVideo) fd.append('clear_intro_video', 'true');
     await adminUpdateSiteConfigLoader(currentSiteConfigId, fd);
+    setIntroVideoFile(null);
+    setClearIntroVideo(false);
     await loadSiteConfig(currentSiteConfigId);
   }
 
@@ -1274,11 +1303,25 @@ export default function AdminPanelPage() {
                         <span className="badge-chip">No image</span>
                       )}
                     </td>
-                    <td>{row.title}</td>
+                    <td>
+                      <div>{row.title}</div>
+                      <small className="admin-muted">{row.phase || '—'}{row.period ? ` · ${row.period}` : ''}</small>
+                    </td>
                     <td><span className="badge-chip">{row.status}</span></td>
                     <td>{new Date(row.updated_at).toLocaleDateString()}</td>
                     <td className="mc-actions-cell">
-                      <button onClick={() => { setRoadEditModal(row); setRoadEditTitle(row.title || ''); setRoadEditImage(null); }}>Edit</button>
+                      <button
+                        onClick={() => {
+                          setRoadEditModal(row);
+                          setRoadEditTitle(row.title || '');
+                          setRoadEditDesc(row.description || '');
+                          setRoadEditPhase(row.phase || '');
+                          setRoadEditPeriod(row.period || '');
+                          setRoadEditImage(null);
+                        }}
+                      >
+                        Edit
+                      </button>
                       <button
                         onClick={() =>
                           setConfirmModal({
@@ -1838,8 +1881,49 @@ export default function AdminPanelPage() {
                   {siteSection === 'loader' ? (
                     <>
                       <div className="admin-panel-head"><h2>Loader Settings</h2></div>
-                      <p className="admin-muted">Choose loading GIF and splash background type.</p>
+                      <p className="admin-muted">
+                        Loading GIF, intro video (plays after loader with sound), and splash background. Loader + video share the frequency setting below.
+                      </p>
                       <div className="admin-cms-list">
+                        <label className="admin-file-upload">
+                          <input
+                            type="file"
+                            accept="video/mp4,video/webm,video/quicktime,video/*"
+                            onChange={(e) => {
+                              setIntroVideoFile(e.target.files?.[0] || null);
+                              if (e.target.files?.[0]) setClearIntroVideo(false);
+                            }}
+                          />
+                          <span className="admin-file-upload-trigger">
+                            <UploadIcon />
+                            <b>{introVideoFile ? 'Change intro video' : 'Choose intro video'}</b>
+                          </span>
+                          <small>{introVideoFile ? introVideoFile.name : 'MP4, WebM, MOV supported'}</small>
+                        </label>
+                        {(introVideoFile || (introVideoUrl && !clearIntroVideo)) ? (
+                          <div className="admin-upload-preview admin-upload-preview-video">
+                            <video
+                              src={introVideoFile ? URL.createObjectURL(introVideoFile) : introVideoUrl}
+                              controls
+                              muted
+                              playsInline
+                            />
+                            <button
+                              type="button"
+                              className="btn btn-outline admin-video-clear"
+                              onClick={() => {
+                                setIntroVideoFile(null);
+                                setIntroVideoUrl('');
+                                setClearIntroVideo(true);
+                              }}
+                            >
+                              Remove intro video
+                            </button>
+                          </div>
+                        ) : (
+                          <p className="admin-muted">No intro video uploaded — site uses public/initial video.mp4 as fallback.</p>
+                        )}
+
                         <label className="admin-file-upload">
                           <input type="file" accept="image/gif,image/*" onChange={(e) => setLoaderGifFile(e.target.files?.[0] || null)} />
                           <span className="admin-file-upload-trigger"><UploadIcon /><b>{loaderGifFile ? 'Change loading GIF' : 'Choose loading GIF'}</b></span>
@@ -1884,7 +1968,7 @@ export default function AdminPanelPage() {
                           </>
                         )}
                         <div className="admin-cms-item">
-                          <label>Show Loader Every (Hours)</label>
+                          <label>Show loader + intro video every (hours)</label>
                           <input
                             type="number"
                             min="1"
@@ -2138,8 +2222,11 @@ export default function AdminPanelPage() {
         <div className="admin-modal-overlay" onClick={() => setRoadEditModal(null)}>
           <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
             <h3>Edit Roadmap Item</h3>
-            <p>Update title for this roadmap item.</p>
-            <input value={roadEditTitle} onChange={(e) => setRoadEditTitle(e.target.value)} placeholder="Title" />
+            <p>Update phase card content shown on the public roadmap timeline.</p>
+            <input value={roadEditTitle} onChange={(e) => setRoadEditTitle(e.target.value)} placeholder="Title (LAUNCH & FOUNDATION)" />
+            <input value={roadEditPhase} onChange={(e) => setRoadEditPhase(e.target.value)} placeholder="Phase label (PHASE 1)" />
+            <input value={roadEditPeriod} onChange={(e) => setRoadEditPeriod(e.target.value)} placeholder="Period (Q2 2024)" />
+            <textarea value={roadEditDesc} onChange={(e) => setRoadEditDesc(e.target.value)} placeholder="Description" rows={4} />
             <label className="admin-file-upload">
               <input type="file" accept="image/*" onChange={(e) => setRoadEditImage(e.target.files?.[0] || null)} />
               <span className="admin-file-upload-trigger">
@@ -2155,7 +2242,7 @@ export default function AdminPanelPage() {
             ) : null}
             <div className="admin-modal-actions">
               <button className="btn btn-outline" onClick={() => setRoadEditModal(null)}>Cancel</button>
-              <button className="btn btn-lime" disabled={busy || (!roadEditTitle.trim() && !roadEditImage)} onClick={() => run(() => editRoadmap(roadEditModal))}>Save</button>
+              <button className="btn btn-lime" disabled={busy || !roadEditTitle.trim()} onClick={() => run(() => editRoadmap(roadEditModal))}>Save</button>
             </div>
           </div>
         </div>
@@ -2166,8 +2253,10 @@ export default function AdminPanelPage() {
           <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
             <h3>Create Roadmap Item</h3>
             <p>Add a new roadmap milestone.</p>
-            <input value={roadTitle} onChange={(e) => setRoadTitle(e.target.value)} placeholder="Roadmap title" />
-            <input value={roadDesc} onChange={(e) => setRoadDesc(e.target.value)} placeholder="Description" />
+            <input value={roadTitle} onChange={(e) => setRoadTitle(e.target.value)} placeholder="Title (LAUNCH & FOUNDATION)" />
+            <input value={roadPhase} onChange={(e) => setRoadPhase(e.target.value)} placeholder="Phase label (PHASE 1)" />
+            <input value={roadPeriod} onChange={(e) => setRoadPeriod(e.target.value)} placeholder="Period (Q2 2024)" />
+            <textarea value={roadDesc} onChange={(e) => setRoadDesc(e.target.value)} placeholder="Description" rows={4} />
             <label className="admin-file-upload">
               <input type="file" accept="image/*" onChange={(e) => setRoadImage(e.target.files?.[0] || null)} />
               <span className="admin-file-upload-trigger">

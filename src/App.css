@@ -59,9 +59,17 @@
 }
 
 .app-shell.boot-checking .app-site-content,
-.app-shell.boot-loading .app-site-content {
+.app-shell.boot-loading .app-site-content,
+.app-shell.boot-video .app-site-content {
   visibility: hidden;
   pointer-events: none;
+}
+
+.app-shell.boot-video {
+  overflow: hidden;
+  height: 100vh;
+  height: 100dvh;
+  background: #000;
 }
 
 .boot-loader-overlay{
@@ -101,4 +109,53 @@
   color:#202063;
   font-weight:800;
   font-size:14px;
+}
+
+.intro-video-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.intro-video-player {
+  width: 100%;
+  height: 100%;
+  max-height: 100vh;
+  max-height: 100dvh;
+  object-fit: contain;
+  background: #000;
+}
+
+.intro-video-actions {
+  position: absolute;
+  right: clamp(16px, 3vw, 28px);
+  bottom: clamp(16px, 3vh, 28px);
+  z-index: 2;
+}
+
+.intro-video-skip {
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-family: 'Orbitron', 'Inter', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.intro-video-skip:hover {
+  background: rgba(255, 90, 40, 0.25);
+  border-color: rgba(255, 140, 0, 0.7);
 }
