@@ -20,22 +20,37 @@ export function assetCanvasUrl(asset) {
 /**
  * Load image for Fabric canvas via fetch → blob (avoids crossOrigin / tainted canvas issues).
  */
-export async function loadFabricImage(asset) {
-  const url = assetCanvasUrl(asset);
-  if (!url) {
-    throw new Error('Missing image URL');
-  }
-
+async function fetchImageBlob(url) {
   const response = await fetch(url, { mode: 'cors', credentials: 'omit' });
   if (!response.ok) {
     throw new Error(`Could not load image (${response.status})`);
   }
+  return response.blob();
+}
 
-  const blob = await response.blob();
-  const blobUrl = URL.createObjectURL(blob);
-  try {
-    return await fabric.FabricImage.fromURL(blobUrl);
-  } finally {
-    URL.revokeObjectURL(blobUrl);
+export async function loadFabricImage(asset) {
+  const apiUrl = assetCanvasUrl(asset);
+  const mediaUrl = assetPreviewUrl(asset);
+  const urls = [apiUrl, mediaUrl].filter((u, i, arr) => u && arr.indexOf(u) === i);
+
+  if (!urls.length) {
+    throw new Error('Missing image URL');
   }
+
+  let lastError;
+  for (const url of urls) {
+    try {
+      const blob = await fetchImageBlob(url);
+      const blobUrl = URL.createObjectURL(blob);
+      try {
+        return await fabric.FabricImage.fromURL(blobUrl);
+      } finally {
+        URL.revokeObjectURL(blobUrl);
+      }
+    } catch (err) {
+      lastError = err;
+    }
+  }
+
+  throw lastError || new Error('Could not load image');
 }
