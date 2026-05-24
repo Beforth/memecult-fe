@@ -18,6 +18,7 @@ import {
   Layers3,
 } from 'lucide-react';
 import { listAssets, publishMeme } from '../api/client';
+import { assetCanvasUrl, assetPreviewUrl } from '../utils/assetMedia';
 
 export default function EditorPage() {
   const stageRef = useRef(null);
@@ -37,6 +38,7 @@ export default function EditorPage() {
   const [layers, setLayers] = useState([]);
   const [publishTitle, setPublishTitle] = useState('My Meme');
   const [publishMsg, setPublishMsg] = useState('');
+  const [editorMsg, setEditorMsg] = useState('');
   const [templateCategory, setTemplateCategory] = useState('All');
   const [stickerCategory, setStickerCategory] = useState('All');
   const [strokeWidth, setStrokeWidth] = useState(3);
@@ -168,7 +170,7 @@ export default function EditorPage() {
     const rows = data.results || data || [];
     setAssets(rows);
     const first = rows.find((a) => a.asset_type === 'template');
-    if (first) setTemplate(first.file);
+    if (first) setTemplate(first);
   }
 
   function active() {
@@ -220,10 +222,19 @@ export default function EditorPage() {
     }
   }
 
-  async function setTemplate(url) {
+  async function setTemplate(asset) {
     const c = fabricRef.current;
-    if (!c) return;
-    const img = await fabric.FabricImage.fromURL(url, { crossOrigin: 'anonymous' });
+    if (!c || !asset) return;
+    const url = assetCanvasUrl(asset);
+    if (!url) return;
+    setEditorMsg('');
+    let img;
+    try {
+      img = await fabric.FabricImage.fromURL(url, { crossOrigin: 'anonymous' });
+    } catch (err) {
+      setEditorMsg(err?.message || 'Could not load template image');
+      return;
+    }
     const cw = img.width;
     const ch = img.height;
     c.setDimensions({ width: cw, height: ch });
@@ -283,10 +294,18 @@ export default function EditorPage() {
     syncPanel();
   }
 
-  async function addSticker(url) {
+  async function addSticker(asset) {
     const c = fabricRef.current;
-    if (!c) return;
-    const img = await fabric.FabricImage.fromURL(url, { crossOrigin: 'anonymous' });
+    if (!c || !asset) return;
+    const url = assetCanvasUrl(asset);
+    if (!url) return;
+    let img;
+    try {
+      img = await fabric.FabricImage.fromURL(url, { crossOrigin: 'anonymous' });
+    } catch (err) {
+      setEditorMsg(err?.message || 'Could not load sticker image');
+      return;
+    }
     const side = Math.max(img.width, img.height);
     const scale = 120 / side;
     img.set({ left: c.getWidth() / 2, top: c.getHeight() / 2, originX: 'center', originY: 'center', scaleX: scale, scaleY: scale });
@@ -490,8 +509,8 @@ export default function EditorPage() {
           {activeTab === 'templates' ? (
             <div className="mc-template-grid">
               {filteredTemplates.map((t) => (
-                <button key={t.id} className="mc-template" onClick={() => setTemplate(t.file)}>
-                  <img src={t.file} alt={t.title} />
+                <button key={t.id} className="mc-template" onClick={() => setTemplate(t)}>
+                  <img src={assetPreviewUrl(t)} alt={t.title} />
                   <span>{t.title}</span>
                 </button>
               ))}
@@ -499,8 +518,8 @@ export default function EditorPage() {
           ) : (
             <div className="mc-sticker-grid">
               {filteredStickers.map((s) => (
-                <button key={s.id} className="mc-sticker" onClick={() => addSticker(s.file)}>
-                  <img src={s.file} alt={s.title} />
+                <button key={s.id} className="mc-sticker" onClick={() => addSticker(s)}>
+                  <img src={assetPreviewUrl(s)} alt={s.title} />
                 </button>
               ))}
             </div>
@@ -508,6 +527,7 @@ export default function EditorPage() {
         </aside>
 
         <section className="mc-stage" ref={stageRef}>
+          {editorMsg ? <p className="mc-editor-error">{editorMsg}</p> : null}
           <div className="mc-top-tools">
             <button className={panMode ? 'active' : ''} onClick={togglePanMode} title="Pan Canvas"><Hand className='mc-tool-btn-icon' /></button>
             <button onClick={resetCanvasPosition} title="Center Canvas"><LocateFixed className='mc-tool-btn-icon' /></button>
