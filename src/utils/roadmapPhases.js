@@ -1,5 +1,5 @@
 /** Accent colors along the timeline (blue → orange → red). */
-export const ROADMAP_ACCENTS = ['blue', 'blue', 'orange', 'red', 'red', 'red'];
+export const ROADMAP_ACCENTS = ['blue', 'blue', 'red', 'red', 'red', 'red'];
 
 export const DEFAULT_ROADMAP_PHASES = [
   {

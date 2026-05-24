@@ -353,6 +353,7 @@ export default function AdminPanelPage() {
   const [roadEditPhase, setRoadEditPhase] = useState('');
   const [roadEditPeriod, setRoadEditPeriod] = useState('');
   const [roadEditImage, setRoadEditImage] = useState(null);
+  const [roadEditIsActive, setRoadEditIsActive] = useState(true);
   const [confirmModal, setConfirmModal] = useState(null);
   const assetReqRef = useRef(0);
   const roadmapReqRef = useRef(0);
@@ -571,6 +572,7 @@ export default function AdminPanelPage() {
     fd.append('description', roadEditDesc);
     fd.append('phase', roadEditPhase);
     fd.append('period', roadEditPeriod);
+    fd.append('is_active', roadEditIsActive ? 'true' : 'false');
     if (roadEditImage) fd.append('image', roadEditImage);
     await adminUpdateRoadmap(roadEditModal.id, fd);
     setRoadEditModal(null);
@@ -579,6 +581,7 @@ export default function AdminPanelPage() {
     setRoadEditPhase('');
     setRoadEditPeriod('');
     setRoadEditImage(null);
+    setRoadEditIsActive(true);
     await loadRoadmap(roadPage, roadSearch);
   }
 
@@ -1318,6 +1321,7 @@ export default function AdminPanelPage() {
                           setRoadEditPhase(row.phase || '');
                           setRoadEditPeriod(row.period || '');
                           setRoadEditImage(null);
+                          setRoadEditIsActive(row.is_active !== false);
                         }}
                       >
                         Edit
@@ -2240,6 +2244,10 @@ export default function AdminPanelPage() {
                 <img src={roadEditImage ? URL.createObjectURL(roadEditImage) : roadEditModal.image} alt="Roadmap preview" />
               </div>
             ) : null}
+            <label className="admin-checkline">
+              <input type="checkbox" checked={roadEditIsActive} onChange={(e) => setRoadEditIsActive(e.target.checked)} />
+              <span>Active (visible on public roadmap)</span>
+            </label>
             <div className="admin-modal-actions">
               <button className="btn btn-outline" onClick={() => setRoadEditModal(null)}>Cancel</button>
               <button className="btn btn-lime" disabled={busy || !roadEditTitle.trim()} onClick={() => run(() => editRoadmap(roadEditModal))}>Save</button>

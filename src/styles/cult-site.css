@@ -426,21 +426,40 @@ body.cult-theme {
 
 .cult-site-mode .mc-editor-grid {
   height: 100%;
+  min-height: 0;
   padding: 12px;
   gap: 12px;
   background: transparent;
 }
 
-.cult-site-mode .mc-iconbar,
+.cult-site-mode .mc-editor-grid > * {
+  min-height: 0;
+}
+
+.cult-site-mode .mc-iconbar {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .cult-site-mode .mc-leftpanel,
 .cult-site-mode .mc-stage,
 .cult-site-mode .mc-rightpanel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: 100%;
   background: var(--cult-panel);
   border: 1px solid var(--cult-border);
   border-radius: 14px;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+  pointer-events: auto;
+}
+
+.cult-site-mode .mc-panel-hint {
+  color: var(--cult-muted);
 }
 
 .cult-site-mode .mc-title,
@@ -477,6 +496,13 @@ body.cult-theme {
 
 .cult-site-mode .mc-stage {
   background: rgba(4, 10, 28, 0.65);
+  display: flex;
+  flex-direction: column;
+}
+
+.cult-site-mode .mc-canvas-wrap {
+  flex: 1;
+  min-height: 420px;
 }
 
 .cult-site-mode .mc-top-tools,

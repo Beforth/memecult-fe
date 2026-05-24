@@ -18,7 +18,8 @@ import {
   Layers3,
 } from 'lucide-react';
 import { listAssets, publishMeme } from '../api/client';
-import { assetCanvasUrl, assetPreviewUrl } from '../utils/assetMedia';
+import { assetPreviewUrl, loadFabricImage } from '../utils/assetMedia';
+import { fitImageToStage, getStageSize } from '../utils/editorCanvas';
 
 export default function EditorPage() {
   const stageRef = useRef(null);
@@ -39,14 +40,25 @@ export default function EditorPage() {
   const [publishTitle, setPublishTitle] = useState('My Meme');
   const [publishMsg, setPublishMsg] = useState('');
   const [editorMsg, setEditorMsg] = useState('');
+  const [templateLoading, setTemplateLoading] = useState(false);
   const [templateCategory, setTemplateCategory] = useState('All');
   const [stickerCategory, setStickerCategory] = useState('All');
   const [strokeWidth, setStrokeWidth] = useState(3);
   const [opacity, setOpacity] = useState(1);
 
+  function applyCanvasWrapperOffset() {
+    const c = fabricRef.current;
+    if (!c?.wrapperEl) return;
+    const { x, y } = panOffsetRef.current;
+    c.wrapperEl.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
+    c.wrapperEl.style.position = 'absolute';
+    c.wrapperEl.style.left = '50%';
+    c.wrapperEl.style.top = '50%';
+    c.wrapperEl.style.zIndex = '2';
+  }
+
   useEffect(() => {
-    const initialW = stageRef.current?.clientWidth || 1200;
-    const initialH = stageRef.current?.clientHeight || 700;
+    const { width: initialW, height: initialH } = getStageSize(stageRef.current, 1200, 700);
     const c = new fabric.Canvas(canvasRef.current, {
       width: initialW,
       height: initialH,
@@ -54,16 +66,6 @@ export default function EditorPage() {
       preserveObjectStacking: true,
     });
     fabricRef.current = c;
-
-    const applyCanvasOffset = () => {
-      if (!c.wrapperEl) return;
-      const { x, y } = panOffsetRef.current;
-      c.wrapperEl.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
-      c.wrapperEl.style.position = 'absolute';
-      c.wrapperEl.style.left = '50%';
-      c.wrapperEl.style.top = '50%';
-      c.wrapperEl.style.zIndex = '2';
-    };
 
     fabric.Object.prototype.cornerColor = '#ffffff';
     fabric.Object.prototype.cornerStrokeColor = '#D02D14';
@@ -137,7 +139,7 @@ export default function EditorPage() {
         x: panOffsetRef.current.x + (evt.clientX - lastPosX),
         y: panOffsetRef.current.y + (evt.clientY - lastPosY),
       };
-      applyCanvasOffset();
+      applyCanvasWrapperOffset();
       lastPosX = evt.clientX;
       lastPosY = evt.clientY;
     });
@@ -149,15 +151,20 @@ export default function EditorPage() {
     });
 
     const ro = new ResizeObserver(() => {
+      const { width, height } = getStageSize(stageRef.current);
+      if (width > 0 && height > 0) {
+        c.setDimensions({ width, height });
+        applyZoomCentered(zoom);
+      }
       c.requestRenderAll();
     });
     if (stageRef.current) ro.observe(stageRef.current);
 
-    applyCanvasOffset();
+    applyCanvasWrapperOffset();
 
     setHistory([JSON.stringify(c.toJSON())]);
 
-    loadAssets();
+    void loadAssets();
 
     return () => {
       ro.disconnect();
@@ -219,55 +226,55 @@ export default function EditorPage() {
       setSelectedText(obj.text || '');
       setFontSize(Number(obj.fontSize || 72));
       setFontFamily(obj.fontFamily || 'Impact');
+      setStrokeWidth(Number(obj.strokeWidth ?? 3));
+      setOpacity(typeof obj.opacity === 'number' ? obj.opacity : 1);
+    } else if (obj.type === 'image') {
+      setOpacity(typeof obj.opacity === 'number' ? obj.opacity : 1);
     }
   }
 
   async function setTemplate(asset) {
     const c = fabricRef.current;
     if (!c || !asset) return;
-    const url = assetCanvasUrl(asset);
-    if (!url) return;
     setEditorMsg('');
+    setTemplateLoading(true);
     let img;
     try {
-      img = await fabric.FabricImage.fromURL(url, { crossOrigin: 'anonymous' });
+      img = await loadFabricImage(asset);
     } catch (err) {
       setEditorMsg(err?.message || 'Could not load template image');
+      setTemplateLoading(false);
       return;
     }
-    const cw = img.width;
-    const ch = img.height;
-    c.setDimensions({ width: cw, height: ch });
-    img.set({
-      left: cw / 2,
-      top: ch / 2,
-      originX: 'center',
-      originY: 'center',
-      selectable: false,
-      evented: false,
-      scaleX: 1,
-      scaleY: 1,
-    });
+
+    const { width: stageW, height: stageH } = getStageSize(stageRef.current);
+    c.setDimensions({ width: stageW, height: stageH });
     c.clear();
     c.setViewportTransform([1, 0, 0, 1, 0, 0]);
     panOffsetRef.current = { x: 0, y: 0 };
-    if (c.wrapperEl) c.wrapperEl.style.transform = 'translate(-50%, -50%) translate(0px, 0px)';
-    const stageW = stageRef.current?.clientWidth || cw;
-    const stageH = stageRef.current?.clientHeight || ch;
-    const fitZoom = Math.min(stageW / cw, stageH / ch) * 0.92;
-    const startZoom = Math.max(0.5, Math.min(1, fitZoom));
-    setZoom(startZoom);
+    applyCanvasWrapperOffset();
+
+    fitImageToStage(img, stageW, stageH);
     c.add(img);
     if (typeof c.sendObjectToBack === 'function') {
       c.sendObjectToBack(img);
     } else if (typeof c.sendToBack === 'function') {
       c.sendToBack(img);
     }
-    addMemeText('THAT MOMENT', cw / 2, 80);
-    addMemeText('WHEN IT WORKS!', cw / 2, ch - 90);
+
+    addMemeText('THAT MOMENT', stageW / 2, Math.min(100, stageH * 0.12));
+    addMemeText('WHEN IT WORKS!', stageW / 2, stageH - Math.min(100, stageH * 0.12));
+    const topText = c.getObjects().find((o) => o.type === 'textbox' || o.type === 'i-text' || o.type === 'text');
+    if (topText) {
+      c.setActiveObject(topText);
+      syncPanel();
+    }
     setActiveTab('templates');
-    applyZoomCentered(startZoom);
+    setZoom(1);
+    applyZoomCentered(1);
     c.requestRenderAll();
+    refreshLayersNow();
+    setTemplateLoading(false);
   }
 
   function addMemeText(text = 'NEW TEXT', left, top) {
@@ -275,10 +282,11 @@ export default function EditorPage() {
     if (!c) return;
     const x = left ?? c.getWidth() / 2;
     const y = top ?? c.getHeight() / 2;
+    const boxWidth = Math.min(620, Math.max(200, c.getWidth() * 0.88));
     const t = new fabric.Textbox(text, {
       left: x,
       top: y,
-      width: 620,
+      width: boxWidth,
       originX: 'center',
       fontFamily: 'Impact',
       fontSize: 72,
@@ -297,21 +305,32 @@ export default function EditorPage() {
   async function addSticker(asset) {
     const c = fabricRef.current;
     if (!c || !asset) return;
-    const url = assetCanvasUrl(asset);
-    if (!url) return;
+    setEditorMsg('');
     let img;
     try {
-      img = await fabric.FabricImage.fromURL(url, { crossOrigin: 'anonymous' });
+      img = await loadFabricImage(asset);
     } catch (err) {
       setEditorMsg(err?.message || 'Could not load sticker image');
       return;
     }
-    const side = Math.max(img.width, img.height);
+    const size = typeof img.getOriginalSize === 'function'
+      ? img.getOriginalSize()
+      : { width: img.width || 1, height: img.height || 1 };
+    const side = Math.max(size.width, size.height, 1);
     const scale = 120 / side;
-    img.set({ left: c.getWidth() / 2, top: c.getHeight() / 2, originX: 'center', originY: 'center', scaleX: scale, scaleY: scale });
+    img.set({
+      left: c.getWidth() / 2,
+      top: c.getHeight() / 2,
+      originX: 'center',
+      originY: 'center',
+      scaleX: scale,
+      scaleY: scale,
+    });
     c.add(img);
     c.setActiveObject(img);
     c.requestRenderAll();
+    syncPanel();
+    refreshLayersNow();
   }
 
   function updateText(value) {
@@ -343,7 +362,11 @@ export default function EditorPage() {
 
   function apply(prop, value) {
     const obj = active();
-    if (!obj) return;
+    if (!obj) {
+      setEditorMsg('Select text or an object on the canvas first');
+      return;
+    }
+    setEditorMsg('');
     obj.set(prop, value);
     fabricRef.current.requestRenderAll();
   }
@@ -396,7 +419,10 @@ export default function EditorPage() {
     setRedoStack((prev) => [...prev, history[history.length - 1]]);
     const prevJson = history[history.length - 2];
     setHistory((h) => h.slice(0, -1));
-    Promise.resolve(c.loadFromJSON(prevJson)).then(() => c.requestRenderAll());
+    c.loadFromJSON(prevJson).then(() => {
+      c.requestRenderAll();
+      refreshLayersNow();
+    });
   }
 
   function redo() {
@@ -405,7 +431,10 @@ export default function EditorPage() {
     const json = redoStack[redoStack.length - 1];
     setRedoStack((r) => r.slice(0, -1));
     setHistory((h) => [...h, json]);
-    Promise.resolve(c.loadFromJSON(json)).then(() => c.requestRenderAll());
+    c.loadFromJSON(json).then(() => {
+      c.requestRenderAll();
+      refreshLayersNow();
+    });
   }
 
   function changeZoom(delta) {
@@ -432,7 +461,7 @@ export default function EditorPage() {
     const c = fabricRef.current;
     if (!c) return;
     panOffsetRef.current = { x: 0, y: 0 };
-    if (c.wrapperEl) c.wrapperEl.style.transform = 'translate(-50%, -50%) translate(0px, 0px)';
+    applyCanvasWrapperOffset();
     applyZoomCentered(zoom);
   }
 
@@ -509,7 +538,7 @@ export default function EditorPage() {
           {activeTab === 'templates' ? (
             <div className="mc-template-grid">
               {filteredTemplates.map((t) => (
-                <button key={t.id} className="mc-template" onClick={() => setTemplate(t)}>
+                <button type="button" key={t.id} className="mc-template" disabled={templateLoading} onClick={() => void setTemplate(t)}>
                   <img src={assetPreviewUrl(t)} alt={t.title} />
                   <span>{t.title}</span>
                 </button>
@@ -518,7 +547,7 @@ export default function EditorPage() {
           ) : (
             <div className="mc-sticker-grid">
               {filteredStickers.map((s) => (
-                <button key={s.id} className="mc-sticker" onClick={() => addSticker(s)}>
+                <button type="button" key={s.id} className="mc-sticker" onClick={() => void addSticker(s)}>
                   <img src={assetPreviewUrl(s)} alt={s.title} />
                 </button>
               ))}
@@ -552,6 +581,8 @@ export default function EditorPage() {
         </section>
 
         <aside className="mc-rightpanel">
+          <div className="mc-panel-section-title">Properties</div>
+          <p className="mc-panel-hint">Select text on the canvas to edit font, color, and effects.</p>
           <div className="mc-panel-section-title">Text</div>
           <input className="mc-field" value={publishTitle} onChange={(e) => setPublishTitle(e.target.value)} placeholder="Meme title" />
           <input className="mc-field" value={selectedText} onChange={(e) => updateText(e.target.value)} />

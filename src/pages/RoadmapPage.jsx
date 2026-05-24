@@ -8,26 +8,35 @@ function PhaseCardBody({ phase, expanded, onToggle }) {
   return (
     <div className={`roadmap-phase-card ${expanded ? 'is-expanded' : ''}`}>
       <div className="roadmap-phase-accent" aria-hidden="true" />
-      <div className="roadmap-phase-body">
-        <div className="roadmap-phase-top">
-          <span className="roadmap-phase-label">{phase.phase}</span>
-          <button
-            type="button"
-            className="roadmap-phase-expand"
-            aria-expanded={expanded}
-            aria-label={expanded ? 'Collapse details' : 'Expand details'}
-            onClick={onToggle}
-          >
-            {expanded ? '−' : '+'}
-          </button>
+      <div className={`roadmap-phase-body${expanded && phase.image ? ' roadmap-phase-body--split' : ''}`}>
+        <div className={`roadmap-phase-content${phase.side === 'right' && expanded && phase.image ? ' roadmap-phase-content--img-left' : ''}`}>
+          <div className="roadmap-phase-text">
+            <div className="roadmap-phase-top">
+              <span className="roadmap-phase-label">{phase.phase}</span>
+              <button
+                type="button"
+                className="roadmap-phase-expand"
+                aria-expanded={expanded}
+                aria-label={expanded ? 'Collapse details' : 'Expand details'}
+                onClick={onToggle}
+              >
+                {expanded ? '−' : '+'}
+              </button>
+            </div>
+            <h2>{phase.title}</h2>
+            {phase.period ? <span className="roadmap-phase-period">{phase.period}</span> : null}
+            <p className="roadmap-phase-desc">{phase.description || 'Details coming soon.'}</p>
+            <button type="button" className="roadmap-phase-details" onClick={onToggle}>
+              <span>{expanded ? 'HIDE DETAILS' : 'VIEW DETAILS'}</span>
+              <span className="roadmap-phase-details-arrow" aria-hidden="true">→</span>
+            </button>
+          </div>
+          {expanded && phase.image ? (
+            <div className="roadmap-phase-img-wrap">
+              <img className="roadmap-phase-img" src={phase.image} alt={phase.title} />
+            </div>
+          ) : null}
         </div>
-        <h2>{phase.title}</h2>
-        {phase.period ? <span className="roadmap-phase-period">{phase.period}</span> : null}
-        <p className="roadmap-phase-desc">{phase.description || 'Details coming soon.'}</p>
-        <button type="button" className="roadmap-phase-details" onClick={onToggle}>
-          <span>{expanded ? 'HIDE DETAILS' : 'VIEW DETAILS'}</span>
-          <span className="roadmap-phase-details-arrow" aria-hidden="true">→</span>
-        </button>
       </div>
     </div>
   );

@@ -49,8 +49,8 @@
 }
 
 .roadmap-page-head h1 .roadmap-accent {
-  color: #ff8c00;
-  text-shadow: 0 0 30px rgba(255, 140, 0, 0.45);
+  color: #ff3b2e;
+  text-shadow: 0 0 30px rgba(255, 59, 46, 0.45);
 }
 
 .roadmap-page-head p {
@@ -72,7 +72,7 @@
   bottom: 0;
   width: 2px;
   margin-left: -1px;
-  background: linear-gradient(180deg, #00d2ff 0%, #00d2ff 38%, #ff8c00 58%, #ff8c00 100%);
+  background: linear-gradient(180deg, #00d2ff 0%, #00d2ff 38%, #ff3b2e 58%, #ff3b2e 100%);
   box-shadow:
     0 0 8px #00d2ff,
     0 0 18px rgba(0, 210, 255, 0.45);
@@ -124,10 +124,9 @@
   color: #00d2ff;
 }
 
-.roadmap-phase--orange .roadmap-phase-node,
 .roadmap-phase--red .roadmap-phase-node {
-  background: #ff8c00;
-  color: #ff8c00;
+  background: #ff3b2e;
+  color: #ff3b2e;
 }
 
 /* Horizontal connector arm (card ↔ node) */
@@ -142,10 +141,9 @@
   box-shadow: 0 0 8px #00d2ff, 0 0 14px rgba(0, 210, 255, 0.5);
 }
 
-.roadmap-phase--orange .roadmap-phase-connector,
 .roadmap-phase--red .roadmap-phase-connector {
-  background: #ff8c00;
-  box-shadow: 0 0 8px #ff8c00, 0 0 14px rgba(255, 140, 0, 0.45);
+  background: #ff3b2e;
+  box-shadow: 0 0 8px #ff3b2e, 0 0 14px rgba(255, 59, 46, 0.45);
 }
 
 .roadmap-phase-card-wrap {
@@ -169,10 +167,9 @@
   box-shadow: 0 0 0 1px rgba(0, 210, 255, 0.06);
 }
 
-.roadmap-phase--orange .roadmap-phase-card,
 .roadmap-phase--red .roadmap-phase-card {
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 0 0 1px rgba(255, 140, 0, 0.08);
+  box-shadow: 0 0 0 1px rgba(255, 59, 46, 0.08);
 }
 
 .roadmap-phase-card:hover {
@@ -209,13 +206,12 @@
     inset 0 0 8px rgba(0, 255, 255, 0.4);
 }
 
-.roadmap-phase--orange .roadmap-phase-accent,
 .roadmap-phase--red .roadmap-phase-accent {
-  background: #ff8c00;
+  background: #ff3b2e;
   box-shadow:
-    0 0 12px #ff8c00,
-    0 0 24px rgba(255, 140, 0, 0.5),
-    inset 0 0 8px rgba(255, 200, 0, 0.35);
+    0 0 12px #ff3b2e,
+    0 0 24px rgba(255, 59, 46, 0.5),
+    inset 0 0 8px rgba(255, 100, 80, 0.35);
 }
 
 .roadmap-phase-body {
@@ -298,10 +294,9 @@
   text-shadow: 0 0 12px rgba(0, 210, 255, 0.35);
 }
 
-.roadmap-phase--orange .roadmap-phase-period,
 .roadmap-phase--red .roadmap-phase-period {
-  color: #ff8c00;
-  text-shadow: 0 0 12px rgba(255, 140, 0, 0.35);
+  color: #ff3b2e;
+  text-shadow: 0 0 12px rgba(255, 59, 46, 0.35);
 }
 
 .roadmap-phase-desc {
@@ -320,6 +315,56 @@
 .roadmap-phase-card.is-expanded .roadmap-phase-desc {
   -webkit-line-clamp: unset;
   display: block;
+}
+
+/* Two-column layout when image is present */
+.roadmap-phase-body--split {
+  padding: 0 !important;
+}
+
+.roadmap-phase-content {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  width: 100%;
+}
+
+/* Left card: text left, image right (default) */
+.roadmap-phase-text {
+  flex: 1;
+  padding: 16px 18px 14px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.roadmap-phase-img-wrap {
+  flex: 0 0 42%;
+  max-width: 42%;
+  overflow: hidden;
+}
+
+.roadmap-phase-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Right card: image left, text right */
+.roadmap-phase-content--img-left {
+  flex-direction: row-reverse;
+}
+
+@media (max-width: 720px) {
+  .roadmap-phase-content {
+    flex-direction: column !important;
+  }
+  .roadmap-phase-img-wrap {
+    flex: none;
+    max-width: 100%;
+    height: 160px;
+  }
 }
 
 .roadmap-phase-details {
@@ -357,7 +402,7 @@
   flex-wrap: wrap;
   padding: 20px 24px;
   background: #0c0e14;
-  border: 1px solid rgba(255, 140, 0, 0.3);
+  border: 1px solid rgba(255, 59, 46, 0.3);
   border-radius: 12px;
 }
 
@@ -366,7 +411,7 @@
   height: 48px;
   border-radius: 50%;
   overflow: hidden;
-  border: 2px solid rgba(255, 140, 0, 0.5);
+  border: 2px solid rgba(255, 59, 46, 0.5);
 }
 
 .roadmap-page-cta-avatar img {
@@ -391,7 +436,7 @@
 }
 
 .roadmap-page-cta-text h3 .roadmap-accent {
-  color: #ff8c00;
+  color: #ff3b2e;
 }
 
 .roadmap-page-cta-text p {
@@ -403,7 +448,7 @@
 .roadmap-page-cta-btn {
   padding: 10px 18px;
   border-radius: 999px;
-  border: 1.5px solid #ff8c00;
+  border: 1.5px solid #ff3b2e;
   color: #fff;
   font-family: 'Orbitron', sans-serif;
   font-size: 0.7rem;
@@ -414,8 +459,8 @@
 }
 
 .roadmap-page-cta-btn:hover {
-  background: rgba(255, 140, 0, 0.1);
-  box-shadow: 0 0 18px rgba(255, 140, 0, 0.25);
+  background: rgba(255, 59, 46, 0.1);
+  box-shadow: 0 0 18px rgba(255, 59, 46, 0.25);
 }
 
 .roadmap-page-error {
