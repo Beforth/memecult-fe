@@ -1,31 +1,23 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as fabric from 'fabric';
-import { Hand } from 'lucide-react';
+import {
+  Hand,
+  Images,
+  Sticker,
+  Type,
+  LocateFixed,
+  Plus,
+  Copy,
+  BringToFront,
+  SendToBack,
+  Trash2,
+  Minus,
+  Download,
+  Info,
+  MoreVertical,
+  Layers3,
+} from 'lucide-react';
 import { listAssets, publishMeme } from '../api/client';
-
-function Icon({ name, className = '' }) {
-  const common = {
-    className: `mc-editor-svg ${className}`.trim(),
-    viewBox: '0 0 24 24',
-    fill: 'none',
-    stroke: 'currentColor',
-    strokeWidth: '2',
-    strokeLinecap: 'round',
-    strokeLinejoin: 'round',
-  };
-
-  if (name === 'image') return <svg {...common}><rect x='3' y='3' width='18' height='18' rx='2' /><circle cx='9' cy='9' r='1.8' /><path d='m21 15-5-5L5 21' /></svg>;
-  if (name === 'smile') return <svg {...common}><circle cx='12' cy='12' r='10' /><path d='M8 14s1.5 2 4 2 4-2 4-2' /><line x1='9' y1='9' x2='9.01' y2='9' /><line x1='15' y1='9' x2='15.01' y2='9' /></svg>;
-  if (name === 'type') return <svg {...common}><path d='M4 7h16' /><path d='M10 7v10' /><path d='M14 7v10' /><path d='M8 17h8' /></svg>;
-  if (name === 'plus') return <svg {...common}><path d='M12 5v14M5 12h14' /></svg>;
-  if (name === 'copy') return <svg {...common}><rect x='9' y='9' width='10' height='10' rx='2' /><rect x='5' y='5' width='10' height='10' rx='2' /></svg>;
-  if (name === 'arrow-up') return <svg {...common}><path d='M12 19V5' /><path d='m6 11 6-6 6 6' /></svg>;
-  if (name === 'arrow-down') return <svg {...common}><path d='M12 5v14' /><path d='m18 13-6 6-6-6' /></svg>;
-  if (name === 'trash') return <svg {...common}><path d='M3 6h18' /><path d='M8 6V4h8v2' /><path d='M19 6l-1 14H6L5 6' /><path d='M10 11v6M14 11v6' /></svg>;
-  if (name === 'target') return <svg {...common}><circle cx='12' cy='12' r='8' /><circle cx='12' cy='12' r='3' /></svg>;
-  if (name === 'download') return <svg {...common}><path d='M12 3v12' /><path d='m7 10 5 5 5-5' /><path d='M4 21h16' /></svg>;
-  return <svg {...common}><circle cx='12' cy='12' r='10' /></svg>;
-}
 
 export default function EditorPage() {
   const stageRef = useRef(null);
@@ -47,6 +39,8 @@ export default function EditorPage() {
   const [publishMsg, setPublishMsg] = useState('');
   const [templateCategory, setTemplateCategory] = useState('All');
   const [stickerCategory, setStickerCategory] = useState('All');
+  const [strokeWidth, setStrokeWidth] = useState(3);
+  const [opacity, setOpacity] = useState(1);
 
   useEffect(() => {
     const initialW = stageRef.current?.clientWidth || 1200;
@@ -70,8 +64,8 @@ export default function EditorPage() {
     };
 
     fabric.Object.prototype.cornerColor = '#ffffff';
-    fabric.Object.prototype.cornerStrokeColor = '#a329ff';
-    fabric.Object.prototype.borderColor = '#a329ff';
+    fabric.Object.prototype.cornerStrokeColor = '#D02D14';
+    fabric.Object.prototype.borderColor = '#D02D14';
     fabric.Object.prototype.cornerSize = 12;
     fabric.Object.prototype.transparentCorners = false;
 
@@ -475,9 +469,9 @@ export default function EditorPage() {
     <section className="mc-editor-page">
       <main className="mc-editor-grid">
         <aside className="mc-iconbar">
-          <button className={`mc-tool ${activeTab === 'templates' ? 'active' : ''}`} onClick={() => setActiveTab('templates')}><Icon name='image' />Templates</button>
-          <button className={`mc-tool ${activeTab === 'stickers' ? 'active' : ''}`} onClick={() => setActiveTab('stickers')}><Icon name='smile' />Stickers</button>
-          <button className="mc-tool" onClick={() => addMemeText()}><Icon name='type' />Text</button>
+          <button className={`mc-tool ${activeTab === 'templates' ? 'active' : ''}`} onClick={() => setActiveTab('templates')}><Images className='mc-editor-svg' />Templates</button>
+          <button className={`mc-tool ${activeTab === 'stickers' ? 'active' : ''}`} onClick={() => setActiveTab('stickers')}><Sticker className='mc-editor-svg' />Stickers</button>
+          <button className="mc-tool" onClick={() => addMemeText()}><Type className='mc-editor-svg' />Text</button>
         </aside>
 
         <aside className="mc-leftpanel">
@@ -515,13 +509,13 @@ export default function EditorPage() {
 
         <section className="mc-stage" ref={stageRef}>
           <div className="mc-top-tools">
-            <button className={panMode ? 'active' : ''} onClick={togglePanMode}><Hand className='mc-tool-btn-icon' /></button>
-            <button onClick={resetCanvasPosition}><Icon name='target' className='mc-tool-btn-icon' /></button>
-            <button onClick={() => addMemeText()}><Icon name='plus' className='mc-tool-btn-icon' /></button>
-            <button onClick={duplicate}><Icon name='copy' className='mc-tool-btn-icon' /></button>
-            <button onClick={bringForward}><Icon name='arrow-up' className='mc-tool-btn-icon' /></button>
-            <button onClick={sendBack}><Icon name='arrow-down' className='mc-tool-btn-icon' /></button>
-            <button onClick={del}><Icon name='trash' className='mc-tool-btn-icon' /></button>
+            <button className={panMode ? 'active' : ''} onClick={togglePanMode} title="Pan Canvas"><Hand className='mc-tool-btn-icon' /></button>
+            <button onClick={resetCanvasPosition} title="Center Canvas"><LocateFixed className='mc-tool-btn-icon' /></button>
+            <button onClick={() => addMemeText()} title="Add Text"><Plus className='mc-tool-btn-icon' /></button>
+            <button onClick={duplicate} title="Duplicate"><Copy className='mc-tool-btn-icon' /></button>
+            <button onClick={bringForward} title="Bring Forward"><BringToFront className='mc-tool-btn-icon' /></button>
+            <button onClick={sendBack} title="Send Backward"><SendToBack className='mc-tool-btn-icon' /></button>
+            <button onClick={del} title="Delete Selected"><Trash2 className='mc-tool-btn-icon' /></button>
           </div>
 
           <div className="mc-canvas-wrap">
@@ -529,16 +523,16 @@ export default function EditorPage() {
           </div>
 
           <div className="mc-zoom">
-            <button onClick={() => changeZoom(-0.1)}>−</button>
+            <button onClick={() => changeZoom(-0.1)} title="Zoom Out"><Minus className='mc-tool-btn-icon' /></button>
             <span>{Math.round(zoom * 100)}%</span>
-            <button onClick={() => changeZoom(0.1)}>+</button>
-            <button onClick={exportPng}><Icon name='download' className='mc-tool-btn-icon' /></button>
+            <button onClick={() => changeZoom(0.1)} title="Zoom In"><Plus className='mc-tool-btn-icon' /></button>
+            <button onClick={exportPng} title="Download PNG"><Download className='mc-tool-btn-icon' /></button>
           </div>
 
         </section>
 
         <aside className="mc-rightpanel">
-          <div className="mc-title">Text</div>
+          <div className="mc-panel-section-title">Text</div>
           <input className="mc-field" value={publishTitle} onChange={(e) => setPublishTitle(e.target.value)} placeholder="Meme title" />
           <input className="mc-field" value={selectedText} onChange={(e) => updateText(e.target.value)} />
           <select className="mc-field" value={fontFamily} onChange={(e) => updateFont(e.target.value)}>
@@ -557,14 +551,46 @@ export default function EditorPage() {
             <button className="mc-square" onClick={() => apply('fontStyle', active()?.fontStyle === 'italic' ? 'normal' : 'italic')}>I</button>
             <button className="mc-square" onClick={() => apply('underline', !active()?.underline)}>U</button>
           </div>
+          <div className="mc-panel-section-title">Effects</div>
           <div className="mc-row">
             <button className="mc-effect" onClick={() => apply('shadow', '5px 5px 8px rgba(0,0,0,0.8)')}>Shadow</button>
             <button className="mc-effect" onClick={() => { apply('stroke', '#000'); apply('strokeWidth', 3); }}>Stroke</button>
-            <button className="mc-effect" onClick={() => apply('shadow', '0 0 18px #d7ff1f')}>Glow</button>
+            <button className="mc-effect" onClick={() => apply('shadow', '0 0 18px #D02D14')}>Glow</button>
           </div>
-          <input type="range" min="0" max="10" defaultValue="3" onChange={(e) => apply('strokeWidth', Number(e.target.value))} />
+          <div className="mc-slider-head">
+            <span>Stroke Size <Info size={13} /></span>
+            <span>{strokeWidth}px</span>
+          </div>
+          <input
+            type="range"
+            min="0"
+            max="10"
+            value={strokeWidth}
+            onChange={(e) => {
+              const v = Number(e.target.value);
+              setStrokeWidth(v);
+              apply('strokeWidth', v);
+            }}
+          />
+          <div className="mc-slider-head">
+            <span>Opacity <Info size={13} /></span>
+            <span>{Math.round(opacity * 100)}%</span>
+          </div>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.01"
+            value={opacity}
+            onChange={(e) => {
+              const v = Number(e.target.value);
+              setOpacity(v);
+              apply('opacity', v);
+            }}
+          />
+          <div className="mc-panel-section-title">Colors</div>
           <div className="mc-colors">
-            {['#ffffff', '#050505', '#d7ff1f', '#8b20ff', '#f72585', '#ff7300'].map((c) => (
+            {['#E3F7FD', '#202063', '#D02D14', '#FFB02F', '#000000', '#ffffff'].map((c) => (
               <button key={c} className="mc-color" style={{ background: c }} onClick={() => apply('fill', c)} />
             ))}
             <input
@@ -576,12 +602,11 @@ export default function EditorPage() {
               aria-label="Pick any color"
             />
           </div>
-          <input type="range" min="0" max="1" step="0.01" defaultValue="1" onChange={(e) => apply('opacity', Number(e.target.value))} />
 
           <button className="mc-publish-btn" onClick={publishCurrentMeme}>Publish Meme</button>
           {publishMsg ? <p className="mc-publish-msg">{publishMsg}</p> : null}
 
-          <div className="mc-title" style={{ marginTop: 18 }}>Layers</div>
+          <div className="mc-panel-section-title" style={{ marginTop: 18 }}>Layers</div>
           <div className="mc-layers">
             {layers.map((layer) => (
               <button key={layer.id} className="mc-layer-item" onClick={() => selectLayer(layer.ref)}>
@@ -591,9 +616,14 @@ export default function EditorPage() {
                   <span className="mc-layer-text">T</span>
                 )}
                 <span>{layer.name}</span>
+                <MoreVertical size={14} className="mc-layer-more" />
               </button>
             ))}
           </div>
+          <button className="mc-arrange-btn" onClick={refreshLayersNow}>
+            <Layers3 size={14} />
+            Arrange Layers
+          </button>
         </aside>
       </main>
     </section>

@@ -7,7 +7,7 @@ function qs(params) {
   return s ? `?${s}` : '';
 }
 
-export default function MemesPage() {
+function MemesPage() {
   const [items, setItems] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -72,11 +72,11 @@ export default function MemesPage() {
   const tags = useMemo(() => ['funny', 'gaming', 'anime', 'classic', 'reaction', 'dark'], []);
 
   return (
-    <section className="memes-shell">
-      <div className="memes-head">
+    <section className="memes-shell cult-page-shell">
+      <header className="memes-head cult-page-head">
         <h2>Memes</h2>
         <p>Community feed of published memes.</p>
-      </div>
+      </header>
 
       <div className="memes-controls">
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search memes, creators, captions" />
@@ -110,3 +110,5 @@ export default function MemesPage() {
     </section>
   );
 }
+
+export default MemesPage;

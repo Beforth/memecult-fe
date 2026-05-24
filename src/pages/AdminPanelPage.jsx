@@ -15,7 +15,29 @@ import {
   adminListContentPages,
   adminCreateContentPage,
   adminUpdateContentPage,
+  adminListSiteConfig,
+  adminGetSiteConfig,
+  adminCreateSiteConfig,
+  adminUpdateSiteConfig,
+  adminDeleteSiteConfig,
+  adminUpdateSiteConfigNav,
+  adminUpdateSiteConfigFooterSections,
+  adminUpdateSiteConfigFooterCta,
+  adminUpdateSiteConfigLoader,
+  adminUpdateSiteConfigBranding,
+  adminUpdateSiteConfigHero,
+  adminUpdateSiteConfigHomeBar,
+  adminActivateSiteConfig,
+  adminListCustomPages,
+  adminCreateCustomPage,
+  adminUpdateCustomPage,
+  adminDeleteCustomPage,
+  getPublicSiteConfig,
 } from '../api/client';
+import { DEFAULT_HERO_CONTENT } from '../utils/heroContent';
+import { cloneHomeBarForEditor, DEFAULT_HOME_BAR } from '../utils/homeBar';
+import { cloneNavItemsForEditor, DEFAULT_NAV_ITEMS } from '../utils/navItems';
+import { DEFAULT_SITE_LOGO, normalizeMediaUrl, resolveSiteLogo } from '../utils/siteMedia';
 
 const NAV = [
   { id: 'dashboard', label: 'Overview' },
@@ -24,6 +46,7 @@ const NAV = [
   { id: 'roadmap', label: 'Roadmap' },
   { id: 'privacy', label: 'Privacy Policy' },
   { id: 'support', label: 'Support' },
+  { id: 'site', label: 'Site CMS' },
 ];
 
 function CustomCheckbox({ checked, onChange, label = 'Select row' }) {
@@ -43,6 +66,54 @@ function UploadIcon() {
       <path d="M12 5v12" />
     </svg>
   );
+}
+
+function EditIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </svg>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 6h18" />
+      <path d="M8 6V4h8v2" />
+      <path d="M19 6l-1 14H6L5 6" />
+      <path d="M10 11v6M14 11v6" />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="m20 6-11 11-5-5" />
+    </svg>
+  );
+}
+
+function ActiveDotIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <circle cx="12" cy="12" r="6" />
+    </svg>
+  );
+}
+
+function cmsSavePayload({ navItems, footerSections, footerCta, loaderBgType, loaderBgColor, loaderGifFile, loaderBgFile }) {
+  const fd = new FormData();
+  fd.append('nav_items', JSON.stringify(navItems));
+  fd.append('footer_sections', JSON.stringify(footerSections));
+  fd.append('footer_cta', JSON.stringify(footerCta));
+  fd.append('loader_background_type', loaderBgType);
+  fd.append('loader_background_color', loaderBgColor);
+  if (loaderGifFile) fd.append('loader_gif', loaderGifFile);
+  if (loaderBgFile) fd.append('loader_background_media', loaderBgFile);
+  return fd;
 }
 
 function ChevronDownIcon() {
@@ -183,6 +254,8 @@ export default function AdminPanelPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const urlTab = searchParams.get('tab');
+  const siteConfigIdParam = searchParams.get('siteConfigId');
+  const siteSectionParam = searchParams.get('siteSection');
   const tab = NAV.some((n) => n.id === urlTab) ? urlTab : 'dashboard';
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -218,6 +291,52 @@ export default function AdminPanelPage() {
   const [contentRows, setContentRows] = useState([]);
   const [contentTitle, setContentTitle] = useState('');
   const [contentBody, setContentBody] = useState('');
+  const [siteConfigId, setSiteConfigId] = useState(null);
+  const [siteConfigRows, setSiteConfigRows] = useState([]);
+  const [selectedSiteConfigs, setSelectedSiteConfigs] = useState([]);
+  const [newSiteConfigName, setNewSiteConfigName] = useState('');
+  const [siteConfigName, setSiteConfigName] = useState('');
+  const [siteNavItems, setSiteNavItems] = useState([]);
+  const [siteFooterSections, setSiteFooterSections] = useState([]);
+  const [siteFooterCta, setSiteFooterCta] = useState({
+    title: '',
+    description: '',
+    button_text: '',
+    button_path: '',
+    external: false,
+  });
+  const [loaderBgType, setLoaderBgType] = useState('color');
+  const [loaderBgColor, setLoaderBgColor] = useState('#E3F7FD');
+  const [loaderGifFile, setLoaderGifFile] = useState(null);
+  const [loaderBgFile, setLoaderBgFile] = useState(null);
+  const [loaderGifUrl, setLoaderGifUrl] = useState('');
+  const [loaderBgUrl, setLoaderBgUrl] = useState('');
+  const [loaderBgHex, setLoaderBgHex] = useState('#E3F7FD');
+  const [loaderFrequencyHours, setLoaderFrequencyHours] = useState(24);
+  const [siteLogoFile, setSiteLogoFile] = useState(null);
+  const [footerLogoFile, setFooterLogoFile] = useState(null);
+  const [siteLogoUrl, setSiteLogoUrl] = useState('');
+  const [footerLogoUrl, setFooterLogoUrl] = useState('');
+  const [adminLogoSrc, setAdminLogoSrc] = useState(DEFAULT_SITE_LOGO);
+  const [siteTheme, setSiteTheme] = useState({
+    primary: '#202063',
+    accent: '#D02D14',
+    light_bg: '#E3F7FD',
+    black: '#000000',
+    warm: '#FFB02F',
+  });
+  const [siteHeroContent, setSiteHeroContent] = useState(DEFAULT_HERO_CONTENT);
+  const [siteHeroCardFiles, setSiteHeroCardFiles] = useState([]);
+  const [siteHeroCardClear, setSiteHeroCardClear] = useState([]);
+  const [siteHomeBar, setSiteHomeBar] = useState(DEFAULT_HOME_BAR);
+  const [siteSection, setSiteSection] = useState(siteSectionParam || 'navbar');
+  const currentSiteConfigId = Number(siteConfigIdParam || siteConfigId || 0) || null;
+  const [customPages, setCustomPages] = useState([]);
+  const [customPageModal, setCustomPageModal] = useState(null);
+  const [customPageTitle, setCustomPageTitle] = useState('');
+  const [customPageSlug, setCustomPageSlug] = useState('');
+  const [customPageBody, setCustomPageBody] = useState('');
+  const [customPagePublished, setCustomPagePublished] = useState(true);
   const [previewAsset, setPreviewAsset] = useState(null);
   const [assetEditModal, setAssetEditModal] = useState(null);
   const [assetEditTitle, setAssetEditTitle] = useState('');
@@ -240,8 +359,18 @@ export default function AdminPanelPage() {
     }
   }, [navigate, setSearchParams, urlTab]);
 
+  useEffect(() => {
+    getPublicSiteConfig()
+      .then((cfg) => setAdminLogoSrc(resolveSiteLogo(cfg)))
+      .catch(() => {});
+  }, []);
+
   function onTabChange(nextTab) {
     setSearchParams({ tab: nextTab });
+  }
+
+  function openSiteConfig(configId, nextSection = 'navbar') {
+    setSearchParams({ tab: 'site', siteConfigId: String(configId), siteSection: nextSection });
   }
 
   useEffect(() => {
@@ -250,7 +379,18 @@ export default function AdminPanelPage() {
     if (tab === 'stickers') run(() => loadAssets('sticker', assetPage, assetSearch, assetCategoryFilter));
     if (tab === 'roadmap') run(() => loadRoadmap(roadPage, roadSearch));
     if (tab === 'privacy' || tab === 'support') run(async () => { await loadContentPages(); primeContentForm(tab); });
-  }, [tab, assetPage, roadPage, assetCategoryFilter]);
+    if (tab === 'site') run(async () => {
+      await loadSiteConfigList();
+      if (siteConfigIdParam) {
+        await loadSiteConfig(Number(siteConfigIdParam));
+      }
+      await loadCustomPages();
+    });
+  }, [tab, siteConfigIdParam]);
+
+  useEffect(() => {
+    if (siteSectionParam) setSiteSection(siteSectionParam);
+  }, [siteSectionParam]);
 
   useEffect(() => {
     if (tab === 'dashboard') run(() => loadAssetCategories(''));
@@ -436,6 +576,462 @@ export default function AdminPanelPage() {
     await loadContentPages();
   }
 
+  async function loadSiteConfigList() {
+    const data = await adminListSiteConfig('?page_size=50');
+    if (Array.isArray(data)) {
+      setSiteConfigRows(data);
+      setSelectedSiteConfigs([]);
+      return;
+    }
+    setSiteConfigRows(data.results || []);
+    setSelectedSiteConfigs([]);
+  }
+
+  async function loadSiteConfig(id) {
+    const row = await adminGetSiteConfig(id);
+    if (row) {
+      setSiteConfigId(row.id);
+      setSiteConfigName(row.name || '');
+      setSiteNavItems(cloneNavItemsForEditor(row.nav_items));
+      setSiteFooterSections(Array.isArray(row.footer_sections) ? row.footer_sections : []);
+      setSiteFooterCta({
+        title: row.footer_cta?.title || '',
+        description: row.footer_cta?.description || '',
+        button_text: row.footer_cta?.button_text || '',
+        button_path: row.footer_cta?.button_path || '',
+        external: Boolean(row.footer_cta?.external),
+      });
+      setLoaderBgType(row.loader_background_type || 'color');
+      setLoaderBgColor(row.loader_background_color || '#E3F7FD');
+      setLoaderBgHex(row.loader_background_color || '#E3F7FD');
+      setLoaderGifUrl(row.loader_gif || '');
+      setLoaderBgUrl(row.loader_background_media || '');
+      setSiteLogoUrl(normalizeMediaUrl(row.site_logo) || '');
+      setFooterLogoUrl(normalizeMediaUrl(row.footer_logo) || '');
+      setLoaderFrequencyHours(Number(row.loader_frequency_hours || 24));
+      setSiteTheme({
+        primary: row.site_theme?.primary || '#202063',
+        accent: row.site_theme?.accent || '#D02D14',
+        light_bg: row.site_theme?.light_bg || '#E3F7FD',
+        black: row.site_theme?.black || '#000000',
+        warm: row.site_theme?.warm || '#FFB02F',
+      });
+      setSiteLogoFile(null);
+      setFooterLogoFile(null);
+      setLoaderGifFile(null);
+      setLoaderBgFile(null);
+      const hero = row.hero_content || {};
+      setSiteHeroContent({
+        cards_heading: hero.cards_heading || DEFAULT_HERO_CONTENT.cards_heading,
+        cards_subheading: hero.cards_subheading || DEFAULT_HERO_CONTENT.cards_subheading,
+        explore_label: hero.explore_label || DEFAULT_HERO_CONTENT.explore_label,
+        explore_path: hero.explore_path || DEFAULT_HERO_CONTENT.explore_path,
+        headline_prefix: hero.headline_prefix || DEFAULT_HERO_CONTENT.headline_prefix,
+        headline_accent: hero.headline_accent || DEFAULT_HERO_CONTENT.headline_accent,
+        description: hero.description || DEFAULT_HERO_CONTENT.description,
+        cards: Array.isArray(hero.cards) && hero.cards.length
+          ? hero.cards.map((card, index) => ({
+              title: card?.title || '',
+              gradient: card?.gradient || DEFAULT_HERO_CONTENT.cards[index]?.gradient || '',
+              image: normalizeMediaUrl(card?.image || ''),
+            }))
+          : DEFAULT_HERO_CONTENT.cards.map((card) => ({ ...card })),
+      });
+      setSiteHeroCardFiles([]);
+      setSiteHeroCardClear([]);
+      setSiteHomeBar(cloneHomeBarForEditor(row.home_bar));
+      return;
+    }
+    setSiteConfigId(null);
+    setSiteConfigName('');
+    setSiteNavItems(cloneNavItemsForEditor([]));
+    setSiteFooterSections([]);
+    setSiteFooterCta({
+      title: '',
+      description: '',
+      button_text: '',
+      button_path: '',
+      external: false,
+    });
+    setLoaderBgType('color');
+    setLoaderBgColor('#E3F7FD');
+    setLoaderBgHex('#E3F7FD');
+    setLoaderGifUrl('');
+    setLoaderBgUrl('');
+    setSiteLogoUrl('');
+    setFooterLogoUrl('');
+    setLoaderFrequencyHours(24);
+    setSiteTheme({
+      primary: '#202063',
+      accent: '#D02D14',
+      light_bg: '#E3F7FD',
+      black: '#000000',
+      warm: '#FFB02F',
+    });
+    setSiteLogoFile(null);
+    setFooterLogoFile(null);
+    setLoaderGifFile(null);
+    setLoaderBgFile(null);
+    setSiteHeroContent(DEFAULT_HERO_CONTENT);
+    setSiteHeroCardFiles([]);
+    setSiteHeroCardClear([]);
+    setSiteHomeBar(cloneHomeBarForEditor(null));
+  }
+
+  function updateHeroField(field, value) {
+    setSiteHeroContent((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function updateHeroCard(index, field, value) {
+    setSiteHeroContent((prev) => ({
+      ...prev,
+      cards: prev.cards.map((card, idx) => (idx === index ? { ...card, [field]: value } : card)),
+    }));
+  }
+
+  function addHeroCard() {
+    setSiteHeroContent((prev) => ({
+      ...prev,
+      cards: [
+        ...prev.cards,
+        {
+          title: 'New Card',
+          gradient: DEFAULT_HERO_CONTENT.cards[0].gradient,
+          image: '',
+        },
+      ],
+    }));
+  }
+
+  function removeHeroCard(index) {
+    setSiteHeroContent((prev) => ({
+      ...prev,
+      cards: prev.cards.filter((_, idx) => idx !== index),
+    }));
+    setSiteHeroCardFiles((prev) => prev.filter((_, idx) => idx !== index));
+    setSiteHeroCardClear((prev) => prev.filter((idx) => idx !== index).map((idx) => (idx > index ? idx - 1 : idx)));
+  }
+
+  function setHeroCardFile(index, file) {
+    setSiteHeroCardFiles((prev) => {
+      const next = [...prev];
+      next[index] = file;
+      return next;
+    });
+    if (file) {
+      setSiteHeroCardClear((prev) => prev.filter((idx) => idx !== index));
+    }
+  }
+
+  function clearHeroCardImage(index) {
+    updateHeroCard(index, 'image', '');
+    setSiteHeroCardFiles((prev) => {
+      const next = [...prev];
+      next[index] = null;
+      return next;
+    });
+    setSiteHeroCardClear((prev) => (prev.includes(index) ? prev : [...prev, index]));
+  }
+
+  async function saveHeroOnly() {
+    if (!currentSiteConfigId) return;
+    const fd = new FormData();
+    fd.append(
+      'hero_content',
+      JSON.stringify({
+        ...siteHeroContent,
+        cards: siteHeroContent.cards.map((card) => ({
+          title: card.title || '',
+          gradient: card.gradient || '',
+          image: card.image || '',
+        })),
+      }),
+    );
+    siteHeroCardFiles.forEach((file, index) => {
+      if (file) fd.append(`hero_card_${index}_image`, file);
+    });
+    if (siteHeroCardClear.length) {
+      fd.append('clear_card_images', JSON.stringify(siteHeroCardClear));
+    }
+    await adminUpdateSiteConfigHero(currentSiteConfigId, fd);
+    setSiteHeroCardFiles([]);
+    setSiteHeroCardClear([]);
+    await loadSiteConfig(currentSiteConfigId);
+  }
+
+  async function saveHomeBarOnly() {
+    if (!currentSiteConfigId) return;
+    await adminUpdateSiteConfigHomeBar(currentSiteConfigId, cloneHomeBarForEditor(siteHomeBar));
+    await loadSiteConfig(currentSiteConfigId);
+  }
+
+  function updateHomeBarTicker(field, value) {
+    setSiteHomeBar((prev) => ({
+      ...prev,
+      ticker: { ...prev.ticker, [field]: value },
+    }));
+  }
+
+  function updateHomeBarColumn(colIndex, field, value) {
+    setSiteHomeBar((prev) => ({
+      ...prev,
+      columns: prev.columns.map((col, idx) => (idx === colIndex ? { ...col, [field]: value } : col)),
+    }));
+  }
+
+  function addHomeBarColumn() {
+    setSiteHomeBar((prev) => ({
+      ...prev,
+      columns: [...prev.columns, { title: 'New Column', links: [] }],
+    }));
+  }
+
+  function removeHomeBarColumn(colIndex) {
+    setSiteHomeBar((prev) => ({
+      ...prev,
+      columns: prev.columns.filter((_, idx) => idx !== colIndex),
+    }));
+  }
+
+  function addHomeBarLink(colIndex) {
+    setSiteHomeBar((prev) => ({
+      ...prev,
+      columns: prev.columns.map((col, idx) =>
+        idx === colIndex
+          ? { ...col, links: [...(col.links || []), { label: '', path: '', external: false, highlight: false }] }
+          : col,
+      ),
+    }));
+  }
+
+  function updateHomeBarLink(colIndex, linkIndex, field, value) {
+    setSiteHomeBar((prev) => ({
+      ...prev,
+      columns: prev.columns.map((col, cIdx) =>
+        cIdx === colIndex
+          ? {
+              ...col,
+              links: (col.links || []).map((link, lIdx) =>
+                lIdx === linkIndex ? { ...link, [field]: value } : link,
+              ),
+            }
+          : col,
+      ),
+    }));
+  }
+
+  function removeHomeBarLink(colIndex, linkIndex) {
+    setSiteHomeBar((prev) => ({
+      ...prev,
+      columns: prev.columns.map((col, cIdx) =>
+        cIdx === colIndex
+          ? { ...col, links: (col.links || []).filter((_, lIdx) => lIdx !== linkIndex) }
+          : col,
+      ),
+    }));
+  }
+
+  async function saveLogoOnly() {
+    if (!currentSiteConfigId) return;
+    const fd = new FormData();
+    if (siteLogoFile) fd.append('site_logo', siteLogoFile);
+    if (footerLogoFile) fd.append('footer_logo', footerLogoFile);
+    if (!siteLogoFile && !footerLogoFile) return;
+    await adminUpdateSiteConfigBranding(currentSiteConfigId, fd);
+    await loadSiteConfig(currentSiteConfigId);
+    const cfg = await getPublicSiteConfig().catch(() => null);
+    if (cfg) setAdminLogoSrc(resolveSiteLogo(cfg));
+  }
+
+  async function saveSiteConfig() {
+    if (!currentSiteConfigId) return;
+    const fd = cmsSavePayload({
+      navItems: siteNavItems,
+      footerSections: siteFooterSections,
+      footerCta: siteFooterCta,
+      loaderBgType,
+      loaderBgColor,
+      loaderGifFile,
+      loaderBgFile,
+    });
+    fd.append('loader_frequency_hours', String(Math.max(1, Number(loaderFrequencyHours || 24))));
+    await adminUpdateSiteConfig(currentSiteConfigId, fd);
+    await loadSiteConfig(currentSiteConfigId);
+  }
+
+  async function saveSiteConfigName() {
+    if (!currentSiteConfigId) return;
+    const name = (siteConfigName || '').trim();
+    if (!name) return;
+    await adminUpdateSiteConfig(currentSiteConfigId, { name });
+    await Promise.all([loadSiteConfig(currentSiteConfigId), loadSiteConfigList()]);
+  }
+
+  async function saveNavbarOnly() {
+    if (!currentSiteConfigId) return;
+    const payload = cloneNavItemsForEditor(siteNavItems);
+    await adminUpdateSiteConfigNav(currentSiteConfigId, payload);
+    await loadSiteConfig(currentSiteConfigId);
+  }
+
+  async function saveFooterOnly() {
+    if (!currentSiteConfigId) return;
+    await adminUpdateSiteConfigFooterSections(currentSiteConfigId, siteFooterSections);
+    await loadSiteConfig(currentSiteConfigId);
+  }
+
+  async function saveFooterCtaOnly() {
+    if (!currentSiteConfigId) return;
+    await adminUpdateSiteConfigFooterCta(currentSiteConfigId, siteFooterCta);
+    await loadSiteConfig(currentSiteConfigId);
+  }
+
+  async function saveLoaderOnly() {
+    if (!currentSiteConfigId) return;
+    const fd = new FormData();
+    fd.append('loader_background_type', loaderBgType);
+    fd.append('loader_background_color', loaderBgColor);
+    fd.append('loader_frequency_hours', String(Math.max(1, Number(loaderFrequencyHours || 24))));
+    if (loaderGifFile) fd.append('loader_gif', loaderGifFile);
+    if (loaderBgFile) fd.append('loader_background_media', loaderBgFile);
+    await adminUpdateSiteConfigLoader(currentSiteConfigId, fd);
+    await loadSiteConfig(currentSiteConfigId);
+  }
+
+  async function saveThemeOnly() {
+    if (!currentSiteConfigId) return;
+    await adminUpdateSiteConfig(currentSiteConfigId, { site_theme: siteTheme });
+    await loadSiteConfig(currentSiteConfigId);
+  }
+
+  async function loadCustomPages() {
+    const data = await adminListCustomPages('?page_size=100');
+    setCustomPages(data.results || []);
+  }
+
+  function openCreateCustomPage() {
+    navigate('/admin/page-builder');
+  }
+
+  function openEditCustomPage(row) {
+    navigate(`/admin/page-builder?id=${row.id}`);
+  }
+
+  async function saveCustomPage() {
+    const payload = {
+      title: customPageTitle,
+      slug: customPageSlug,
+      body: customPageBody,
+      is_published: customPagePublished,
+    };
+    if (customPageModal?.mode === 'edit' && customPageModal?.id) {
+      await adminUpdateCustomPage(customPageModal.id, payload);
+    } else {
+      await adminCreateCustomPage(payload);
+    }
+    setCustomPageModal(null);
+    await loadCustomPages();
+  }
+
+  function updateNavItem(index, key, value) {
+    setSiteNavItems((prev) => prev.map((item, i) => (i === index ? { ...item, [key]: value } : item)));
+  }
+
+  function addNavItem() {
+    setSiteNavItems((prev) => [...prev, { label: '', path: '', external: false, children: [] }]);
+  }
+
+  function removeNavItem(index) {
+    setSiteNavItems((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function addNavChild(navIndex) {
+    setSiteNavItems((prev) => {
+      if (navIndex < 0 || navIndex >= prev.length) return prev;
+      return prev.map((item, i) => {
+        if (i !== navIndex) {
+          return {
+            ...item,
+            children: Array.isArray(item.children) ? [...item.children] : [],
+          };
+        }
+        const children = Array.isArray(item.children) ? [...item.children] : [];
+        children.push({ label: '', path: '', external: false });
+        return { ...item, children };
+      });
+    });
+  }
+
+  function updateNavChild(navIndex, childIndex, key, value) {
+    setSiteNavItems((prev) =>
+      prev.map((item, i) =>
+        i === navIndex
+          ? {
+              ...item,
+              children: (item.children || []).map((child, ci) =>
+                ci === childIndex ? { ...child, [key]: value } : child,
+              ),
+            }
+          : item,
+      ),
+    );
+  }
+
+  function removeNavChild(navIndex, childIndex) {
+    setSiteNavItems((prev) =>
+      prev.map((item, i) =>
+        i === navIndex
+          ? { ...item, children: (item.children || []).filter((_, ci) => ci !== childIndex) }
+          : item,
+      ),
+    );
+  }
+
+  function addFooterSection() {
+    setSiteFooterSections((prev) => [...prev, { title: '', links: [] }]);
+  }
+
+  function updateFooterSection(index, key, value) {
+    setSiteFooterSections((prev) => prev.map((item, i) => (i === index ? { ...item, [key]: value } : item)));
+  }
+
+  function removeFooterSection(index) {
+    setSiteFooterSections((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function addFooterLink(sectionIndex) {
+    setSiteFooterSections((prev) =>
+      prev.map((section, i) =>
+        i === sectionIndex
+          ? { ...section, links: [...(section.links || []), { label: '', path: '', external: false }] }
+          : section,
+      ),
+    );
+  }
+
+  function updateFooterLink(sectionIndex, linkIndex, key, value) {
+    setSiteFooterSections((prev) =>
+      prev.map((section, i) =>
+        i === sectionIndex
+          ? {
+              ...section,
+              links: (section.links || []).map((link, li) => (li === linkIndex ? { ...link, [key]: value } : link)),
+            }
+          : section,
+      ),
+    );
+  }
+
+  function removeFooterLink(sectionIndex, linkIndex) {
+    setSiteFooterSections((prev) =>
+      prev.map((section, i) =>
+        i === sectionIndex
+          ? { ...section, links: (section.links || []).filter((_, li) => li !== linkIndex) }
+          : section,
+      ),
+    );
+  }
+
   async function runConfirmedDelete() {
     if (!confirmModal || typeof confirmModal.onConfirm !== 'function') return;
     await confirmModal.onConfirm();
@@ -455,7 +1051,7 @@ export default function AdminPanelPage() {
     <section className="admin-shell">
       <aside className="admin-side">
         <div className="admin-side-logo">
-          <img src="/images/memecult-logo.png" alt="MemeCult" />
+          <img src={adminLogoSrc} alt="MemeCult" />
         </div>
 
         <div className="admin-side-title">Dashboard</div>
@@ -721,6 +1317,673 @@ export default function AdminPanelPage() {
             </div>
           </section>
         ) : null}
+
+        {tab === 'site' ? (
+          <>
+            {!siteConfigIdParam ? (
+              <section className="admin-panel admin-cms-panel">
+                <div className="admin-panel-head">
+                  <h2>Site Configs</h2>
+                  <div className="admin-form-row">
+                    <input
+                      value={newSiteConfigName}
+                      onChange={(e) => setNewSiteConfigName(e.target.value)}
+                      placeholder="Config name"
+                    />
+                    <button
+                      className="btn btn-outline"
+                      onClick={() => {
+                        if (!selectedSiteConfigs.length) return;
+                        setConfirmModal({
+                          title: 'Delete Selected Site Configs',
+                          message: `Delete ${selectedSiteConfigs.length} selected config(s)? This cannot be undone.`,
+                          confirmText: 'Delete',
+                          onConfirm: async () => {
+                            for (const id of selectedSiteConfigs) {
+                              await adminDeleteSiteConfig(id);
+                            }
+                            await loadSiteConfigList();
+                          },
+                        });
+                      }}
+                    >
+                      Bulk Delete
+                    </button>
+                    <button className="btn btn-lime" onClick={() => run(async () => {
+                      const row = await adminCreateSiteConfig({
+                        name: (newSiteConfigName || '').trim() || `Site Config ${new Date().toLocaleString()}`,
+                        site_theme: {
+                          primary: '#202063',
+                          accent: '#D02D14',
+                          light_bg: '#E3F7FD',
+                          black: '#000000',
+                          warm: '#FFB02F',
+                        },
+                        nav_items: DEFAULT_NAV_ITEMS,
+                        footer_sections: [],
+                        footer_cta: {},
+                        hero_content: DEFAULT_HERO_CONTENT,
+                        home_bar: DEFAULT_HOME_BAR,
+                        loader_background_type: 'color',
+                        loader_background_color: '#E3F7FD',
+                        loader_frequency_hours: 24,
+                      });
+                      setNewSiteConfigName('');
+                      await loadSiteConfigList();
+                      openSiteConfig(row.id, 'navbar');
+                    })}>+ Create Config</button>
+                  </div>
+                </div>
+                <table className="mc-list-table">
+                  <thead><tr><th><CustomCheckbox checked={siteConfigRows.length > 0 && selectedSiteConfigs.length === siteConfigRows.length} onChange={(e) => setSelectedSiteConfigs(e.target.checked ? siteConfigRows.map((r) => r.id) : [])} label="Select all site configs" /></th><th>ID</th><th>Name</th><th>Status</th><th>Updated</th><th>Actions</th></tr></thead>
+                  <tbody>
+                    {siteConfigRows.map((row) => (
+                      <tr key={row.id} className={row.is_active ? 'mc-row-active' : ''}>
+                        <td><CustomCheckbox checked={selectedSiteConfigs.includes(row.id)} onChange={(e) => setSelectedSiteConfigs((prev) => e.target.checked ? [...prev, row.id] : prev.filter((x) => x !== row.id))} label={`Select config ${row.id}`} /></td>
+                        <td>{row.id}</td>
+                        <td>{row.name || '-'}</td>
+                        <td>
+                          {row.is_active ? (
+                            <span className="badge-chip badge-chip-active">Active</span>
+                          ) : (
+                            <span className="badge-chip badge-chip-inactive">Inactive</span>
+                          )}
+                        </td>
+                        <td>{new Date(row.updated_at).toLocaleString()}</td>
+                        <td className="mc-actions-cell">
+                          <button className="mc-icon-btn" title="Edit" aria-label="Edit" onClick={() => openSiteConfig(row.id, 'navbar')}>
+                            <EditIcon />
+                          </button>
+                          {!row.is_active ? (
+                            <button className="mc-icon-btn" title="Set Active" aria-label="Set Active" onClick={() => run(async () => { await adminActivateSiteConfig(row.id); await loadSiteConfigList(); })}>
+                              <CheckIcon />
+                            </button>
+                          ) : (
+                            <button className="mc-icon-btn mc-icon-btn-active" title="Already Active" aria-label="Already Active" disabled>
+                              <ActiveDotIcon />
+                            </button>
+                          )}
+                          <button
+                            className="mc-icon-btn"
+                            title="Delete"
+                            aria-label="Delete"
+                            onClick={() =>
+                              setConfirmModal({
+                                title: 'Delete Site Config',
+                                message: `Delete config #${row.id}? This cannot be undone.`,
+                                confirmText: 'Delete',
+                                onConfirm: async () => {
+                                  await adminDeleteSiteConfig(row.id);
+                                  await loadSiteConfigList();
+                                },
+                              })
+                            }
+                          >
+                            <TrashIcon />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </section>
+            ) : null}
+
+            {siteConfigIdParam ? (
+            <section className="admin-panel admin-cms-panel">
+              <div className="admin-cms-layout">
+                <aside className="admin-cms-nav">
+                  <button className={`admin-cms-nav-item ${siteSection === 'logo' ? 'active' : ''}`} onClick={() => openSiteConfig(siteConfigIdParam, 'logo')}>Logo</button>
+                  <button className={`admin-cms-nav-item ${siteSection === 'hero' ? 'active' : ''}`} onClick={() => openSiteConfig(siteConfigIdParam, 'hero')}>Home Hero</button>
+                  <button className={`admin-cms-nav-item ${siteSection === 'homebar' ? 'active' : ''}`} onClick={() => openSiteConfig(siteConfigIdParam, 'homebar')}>Home Bar</button>
+                  <button className={`admin-cms-nav-item ${siteSection === 'navbar' ? 'active' : ''}`} onClick={() => openSiteConfig(siteConfigIdParam, 'navbar')}>Navbar</button>
+                  <button className={`admin-cms-nav-item ${siteSection === 'footer' ? 'active' : ''}`} onClick={() => openSiteConfig(siteConfigIdParam, 'footer')}>Footer Links</button>
+                  <button className={`admin-cms-nav-item ${siteSection === 'cta' ? 'active' : ''}`} onClick={() => openSiteConfig(siteConfigIdParam, 'cta')}>Footer CTA</button>
+                  <button className={`admin-cms-nav-item ${siteSection === 'loader' ? 'active' : ''}`} onClick={() => openSiteConfig(siteConfigIdParam, 'loader')}>Loader</button>
+                  <button className={`admin-cms-nav-item ${siteSection === 'theme' ? 'active' : ''}`} onClick={() => openSiteConfig(siteConfigIdParam, 'theme')}>Theme</button>
+                  <button className={`admin-cms-nav-item ${siteSection === 'pages' ? 'active' : ''}`} onClick={() => openSiteConfig(siteConfigIdParam, 'pages')}>Custom Pages</button>
+                  <button className="admin-cms-nav-item" onClick={() => setSearchParams({ tab: 'site' })}>← Back to Config List</button>
+                </aside>
+                <div className="admin-cms-content">
+                  <div className="admin-site-name-row">
+                    <input value={siteConfigName} onChange={(e) => setSiteConfigName(e.target.value)} placeholder="Site config name" />
+                    <button className="btn btn-outline" onClick={() => run(saveSiteConfigName)}>Save Name</button>
+                  </div>
+                  {siteSection === 'logo' ? (
+                    <>
+                      <div className="admin-panel-head"><h2>Site Logo</h2></div>
+                      <p className="admin-muted">Upload logos shown in the navbar, login, hero, and footer.</p>
+                      <div className="admin-cms-list">
+                        <div>
+                          <h3 className="admin-subhead">Main logo</h3>
+                          <p className="admin-muted">Used in navbar, login, and hero badge.</p>
+                          <label className="admin-file-upload">
+                            <input type="file" accept="image/*" onChange={(e) => setSiteLogoFile(e.target.files?.[0] || null)} />
+                            <span className="admin-file-upload-trigger"><UploadIcon /><b>{siteLogoFile ? 'Change main logo' : 'Choose main logo'}</b></span>
+                            <small>{siteLogoFile ? siteLogoFile.name : 'PNG, JPG, SVG, or WebP'}</small>
+                          </label>
+                          {(siteLogoFile || siteLogoUrl) ? (
+                            <div className="admin-upload-preview admin-logo-preview">
+                              <img src={siteLogoFile ? URL.createObjectURL(siteLogoFile) : siteLogoUrl} alt="Main logo preview" />
+                            </div>
+                          ) : null}
+                        </div>
+                        <div>
+                          <h3 className="admin-subhead">Footer logo</h3>
+                          <p className="admin-muted">Optional. Falls back to main logo if empty.</p>
+                          <label className="admin-file-upload">
+                            <input type="file" accept="image/*" onChange={(e) => setFooterLogoFile(e.target.files?.[0] || null)} />
+                            <span className="admin-file-upload-trigger"><UploadIcon /><b>{footerLogoFile ? 'Change footer logo' : 'Choose footer logo'}</b></span>
+                            <small>{footerLogoFile ? footerLogoFile.name : 'PNG, JPG, SVG, or WebP'}</small>
+                          </label>
+                          {(footerLogoFile || footerLogoUrl) ? (
+                            <div className="admin-upload-preview admin-logo-preview">
+                              <img src={footerLogoFile ? URL.createObjectURL(footerLogoFile) : footerLogoUrl} alt="Footer logo preview" />
+                            </div>
+                          ) : null}
+                        </div>
+                      </div>
+                      <div className="admin-modal-actions">
+                        <button className="btn btn-lime" onClick={() => run(saveLogoOnly)} disabled={!siteLogoFile && !footerLogoFile}>Save Logos</button>
+                      </div>
+                    </>
+                  ) : null}
+
+                  {siteSection === 'hero' ? (
+                    <>
+                      <div className="admin-panel-head">
+                        <h2>Home Hero</h2>
+                        <button className="btn btn-outline" onClick={addHeroCard}>+ Add Card</button>
+                      </div>
+                      <p className="admin-muted">
+                        Edit the home page headline (left panel) and generated cards (right panel).
+                        Changes apply to the active site config.
+                      </p>
+                      <div className="admin-cms-list">
+                        <div className="admin-cms-section">
+                          <h3 className="admin-subhead">Headline (left panel)</h3>
+                          <div className="admin-cms-item">
+                            <input
+                              value={siteHeroContent.headline_prefix || ''}
+                              onChange={(e) => updateHeroField('headline_prefix', e.target.value)}
+                              placeholder="Headline prefix"
+                            />
+                            <input
+                              value={siteHeroContent.headline_accent || ''}
+                              onChange={(e) => updateHeroField('headline_accent', e.target.value)}
+                              placeholder="Accent text (orange)"
+                            />
+                            <span />
+                          </div>
+                          <textarea
+                            className="admin-textarea"
+                            rows={4}
+                            value={siteHeroContent.description || ''}
+                            onChange={(e) => updateHeroField('description', e.target.value)}
+                            placeholder="Description paragraph"
+                          />
+                        </div>
+                        <div className="admin-cms-section">
+                          <h3 className="admin-subhead">Cards panel (right)</h3>
+                          <div className="admin-cms-item">
+                            <input
+                              value={siteHeroContent.cards_heading || ''}
+                              onChange={(e) => updateHeroField('cards_heading', e.target.value)}
+                              placeholder="Cards heading"
+                            />
+                            <input
+                              value={siteHeroContent.cards_subheading || ''}
+                              onChange={(e) => updateHeroField('cards_subheading', e.target.value)}
+                              placeholder="Cards subheading"
+                            />
+                            <span />
+                          </div>
+                          <div className="admin-cms-item">
+                            <input
+                              value={siteHeroContent.explore_label || ''}
+                              onChange={(e) => updateHeroField('explore_label', e.target.value)}
+                              placeholder="Button label"
+                            />
+                            <input
+                              value={siteHeroContent.explore_path || ''}
+                              onChange={(e) => updateHeroField('explore_path', e.target.value)}
+                              placeholder="Button path (/editor)"
+                            />
+                            <span />
+                          </div>
+                          {siteHeroContent.cards.map((card, idx) => (
+                            <div key={`hero-card-${idx}`} className="admin-cms-section">
+                              <div className="admin-cms-section-head">
+                                <strong>Card {idx + 1}</strong>
+                                <button className="btn btn-outline" onClick={() => removeHeroCard(idx)}>Remove</button>
+                              </div>
+                              <div className="admin-cms-item">
+                                <input
+                                  value={card.title || ''}
+                                  onChange={(e) => updateHeroCard(idx, 'title', e.target.value)}
+                                  placeholder="Card title"
+                                />
+                                <input
+                                  value={card.gradient || ''}
+                                  onChange={(e) => updateHeroCard(idx, 'gradient', e.target.value)}
+                                  placeholder="CSS gradient (if no image)"
+                                />
+                                <span />
+                              </div>
+                              <label className="admin-file-upload">
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => setHeroCardFile(idx, e.target.files?.[0] || null)}
+                                />
+                                <span className="admin-file-upload-trigger">
+                                  <UploadIcon />
+                                  <b>{siteHeroCardFiles[idx] ? 'Change card image' : 'Choose card image'}</b>
+                                </span>
+                                <small>Optional — overrides gradient background</small>
+                              </label>
+                              {(siteHeroCardFiles[idx] || card.image) ? (
+                                <div className="admin-upload-preview">
+                                  <img
+                                    src={
+                                      siteHeroCardFiles[idx]
+                                        ? URL.createObjectURL(siteHeroCardFiles[idx])
+                                        : card.image
+                                    }
+                                    alt={`Card ${idx + 1} preview`}
+                                  />
+                                  <button className="btn btn-outline" type="button" onClick={() => clearHeroCardImage(idx)}>
+                                    Remove image
+                                  </button>
+                                </div>
+                              ) : null}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="admin-modal-actions">
+                        <button className="btn btn-lime" onClick={() => run(saveHeroOnly)}>Save Home Hero</button>
+                      </div>
+                    </>
+                  ) : null}
+
+                  {siteSection === 'homebar' ? (
+                    <>
+                      <div className="admin-panel-head">
+                        <h2>Home Bar</h2>
+                        <button type="button" className="btn btn-outline" onClick={addHomeBarColumn}>+ Add Column</button>
+                      </div>
+                      <p className="admin-muted">
+                        Bottom strip on the home page: ticker (token + contract) and link columns (Social, Resources, Contact).
+                      </p>
+                      <div className="admin-cms-section">
+                        <div className="admin-cms-section-head">
+                          <strong>Ticker</strong>
+                        </div>
+                        <div className="admin-cms-item">
+                          <input
+                            value={siteHomeBar.ticker?.title || ''}
+                            onChange={(e) => updateHomeBarTicker('title', e.target.value)}
+                            placeholder="Column title (Ticker)"
+                          />
+                          <input
+                            value={siteHomeBar.ticker?.symbol || ''}
+                            onChange={(e) => updateHomeBarTicker('symbol', e.target.value)}
+                            placeholder="Symbol ($MEMECULT)"
+                          />
+                          <input
+                            value={siteHomeBar.ticker?.contract_address || ''}
+                            onChange={(e) => updateHomeBarTicker('contract_address', e.target.value)}
+                            placeholder="Contract (0x7a3f...cult)"
+                          />
+                        </div>
+                      </div>
+                      <div className="admin-cms-list">
+                        {(siteHomeBar.columns || []).map((col, colIdx) => (
+                          <div key={`homebar-col-${colIdx}`} className="admin-cms-section">
+                            <div className="admin-cms-section-head">
+                              <input
+                                value={col.title || ''}
+                                onChange={(e) => updateHomeBarColumn(colIdx, 'title', e.target.value)}
+                                placeholder="Column title"
+                              />
+                              <button type="button" className="btn btn-outline" onClick={() => removeHomeBarColumn(colIdx)}>
+                                Remove Column
+                              </button>
+                            </div>
+                            <div className="admin-cms-list">
+                              {(col.links || []).map((link, linkIdx) => (
+                                <div key={`homebar-link-${colIdx}-${linkIdx}`} className="admin-cms-item">
+                                  <input
+                                    value={link.label || ''}
+                                    onChange={(e) => updateHomeBarLink(colIdx, linkIdx, 'label', e.target.value)}
+                                    placeholder="Link label"
+                                  />
+                                  <input
+                                    value={link.path || ''}
+                                    onChange={(e) => updateHomeBarLink(colIdx, linkIdx, 'path', e.target.value)}
+                                    placeholder="Path or URL (/login, mailto:…)"
+                                  />
+                                  <label className="admin-checkline">
+                                    <input
+                                      type="checkbox"
+                                      checked={Boolean(link.external)}
+                                      onChange={(e) => updateHomeBarLink(colIdx, linkIdx, 'external', e.target.checked)}
+                                    />
+                                    <span>External</span>
+                                  </label>
+                                  <label className="admin-checkline">
+                                    <input
+                                      type="checkbox"
+                                      checked={Boolean(link.highlight)}
+                                      onChange={(e) => updateHomeBarLink(colIdx, linkIdx, 'highlight', e.target.checked)}
+                                    />
+                                    <span>Highlight (Join link style)</span>
+                                  </label>
+                                  <button type="button" className="btn btn-outline" onClick={() => removeHomeBarLink(colIdx, linkIdx)}>
+                                    Remove
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                            <button type="button" className="btn btn-outline admin-cms-add-link" onClick={() => addHomeBarLink(colIdx)}>
+                              + Add Link
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="admin-modal-actions">
+                        <button className="btn btn-lime" onClick={() => run(saveHomeBarOnly)}>Save Home Bar</button>
+                      </div>
+                    </>
+                  ) : null}
+
+                  {siteSection === 'navbar' ? (
+                    <>
+                      <div className="admin-panel-head">
+                        <h2>Navbar Builder</h2>
+                        <button type="button" className="btn btn-outline" onClick={addNavItem}>+ Add Item</button>
+                      </div>
+                      <p className="admin-muted">
+                        Top links: Home, About, Roadmap. Use dropdown children for Featured (e.g. Meme Lab, Futardio Card).
+                      </p>
+                      <div className="admin-cms-list">
+                        {siteNavItems.map((item, idx) => (
+                          <div key={`nav-${idx}`} className="admin-cms-section">
+                            <div className="admin-cms-section-head">
+                              <strong>Nav item {idx + 1}</strong>
+                              <button type="button" className="btn btn-outline" onClick={() => removeNavItem(idx)}>Remove</button>
+                            </div>
+                            <div className="admin-nav-fields">
+                              <label className="admin-field">
+                                <span>Label</span>
+                                <input value={item.label || ''} onChange={(e) => updateNavItem(idx, 'label', e.target.value)} placeholder="Home" />
+                              </label>
+                              <label className="admin-field">
+                                <span>Path</span>
+                                <input
+                                  value={item.path || ''}
+                                  onChange={(e) => updateNavItem(idx, 'path', e.target.value)}
+                                  placeholder={(item.children || []).length ? 'Optional for dropdown parent' : '/about'}
+                                />
+                              </label>
+                              <label className="admin-checkline">
+                                <input type="checkbox" checked={Boolean(item.external)} onChange={(e) => updateNavItem(idx, 'external', e.target.checked)} />
+                                <span>External link</span>
+                              </label>
+                            </div>
+                            <div className="admin-cms-sublist">
+                              <div className="admin-cms-section-head">
+                                <span className="admin-muted">
+                                  Dropdown links ({(item.children || []).length})
+                                </span>
+                                <button
+                                  type="button"
+                                  className="btn btn-outline"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    addNavChild(idx);
+                                  }}
+                                >
+                                  + Add dropdown link
+                                </button>
+                              </div>
+                              {(item.children || []).length === 0 ? (
+                                <p className="admin-muted admin-nav-empty-hint">
+                                  No dropdown links yet. Click &quot;Add dropdown link&quot; for items like Featured → Meme Lab.
+                                </p>
+                              ) : null}
+                              {(item.children || []).map((child, childIdx) => (
+                                <div key={`nav-${idx}-child-${childIdx}`} className="admin-nav-child-card">
+                                  <div className="admin-cms-section-head">
+                                    <strong>Dropdown {childIdx + 1}</strong>
+                                    <button type="button" className="btn btn-outline" onClick={() => removeNavChild(idx, childIdx)}>Remove</button>
+                                  </div>
+                                  <label className="admin-field">
+                                    <span>Label</span>
+                                    <input value={child.label || ''} onChange={(e) => updateNavChild(idx, childIdx, 'label', e.target.value)} placeholder="Meme Lab" />
+                                  </label>
+                                  <label className="admin-field">
+                                    <span>Path</span>
+                                    <input value={child.path || ''} onChange={(e) => updateNavChild(idx, childIdx, 'path', e.target.value)} placeholder="/editor" />
+                                  </label>
+                                  <label className="admin-checkline">
+                                    <input type="checkbox" checked={Boolean(child.external)} onChange={(e) => updateNavChild(idx, childIdx, 'external', e.target.checked)} />
+                                    <span>External link</span>
+                                  </label>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="admin-modal-actions"><button className="btn btn-lime" onClick={() => run(saveNavbarOnly)}>Save Navbar</button></div>
+                    </>
+                  ) : null}
+
+                  {siteSection === 'footer' ? (
+                    <>
+                      <div className="admin-panel-head">
+                        <h2>Footer Builder</h2>
+                        <button className="btn btn-outline" onClick={addFooterSection}>+ Add Section</button>
+                      </div>
+                      <p className="admin-muted">Create footer columns and links visually.</p>
+                      <div className="admin-cms-list">
+                        {siteFooterSections.map((section, sIdx) => (
+                          <div key={`section-${sIdx}`} className="admin-cms-section">
+                            <div className="admin-cms-section-head">
+                              <input value={section.title || ''} onChange={(e) => updateFooterSection(sIdx, 'title', e.target.value)} placeholder="Section Title" />
+                              <button className="btn btn-outline" onClick={() => removeFooterSection(sIdx)}>Remove Section</button>
+                            </div>
+                            <div className="admin-cms-list">
+                              {(section.links || []).map((link, lIdx) => (
+                                <div key={`link-${sIdx}-${lIdx}`} className="admin-cms-item">
+                                  <input value={link.label || ''} onChange={(e) => updateFooterLink(sIdx, lIdx, 'label', e.target.value)} placeholder="Link Label" />
+                                  <input value={link.path || ''} onChange={(e) => updateFooterLink(sIdx, lIdx, 'path', e.target.value)} placeholder="Link Path" />
+                                  <label className="admin-checkline">
+                                    <input type="checkbox" checked={Boolean(link.external)} onChange={(e) => updateFooterLink(sIdx, lIdx, 'external', e.target.checked)} />
+                                    <span>External</span>
+                                  </label>
+                                  <button className="btn btn-outline" onClick={() => removeFooterLink(sIdx, lIdx)}>Remove</button>
+                                </div>
+                              ))}
+                            </div>
+                            <button className="btn btn-outline admin-cms-add-link" onClick={() => addFooterLink(sIdx)}>+ Add Link</button>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="admin-modal-actions"><button className="btn btn-lime" onClick={() => run(saveFooterOnly)}>Save Footer Links</button></div>
+                    </>
+                  ) : null}
+
+                  {siteSection === 'cta' ? (
+                    <>
+                      <div className="admin-panel-head"><h2>Footer CTA</h2></div>
+                      <p className="admin-muted">Edit the highlighted promo card in footer.</p>
+                      <div className="admin-cms-item">
+                        <input value={siteFooterCta.title || ''} onChange={(e) => setSiteFooterCta((prev) => ({ ...prev, title: e.target.value }))} placeholder="CTA Title" />
+                        <input value={siteFooterCta.description || ''} onChange={(e) => setSiteFooterCta((prev) => ({ ...prev, description: e.target.value }))} placeholder="CTA Description" />
+                        <input value={siteFooterCta.button_text || ''} onChange={(e) => setSiteFooterCta((prev) => ({ ...prev, button_text: e.target.value }))} placeholder="Button Text" />
+                        <input value={siteFooterCta.button_path || ''} onChange={(e) => setSiteFooterCta((prev) => ({ ...prev, button_path: e.target.value }))} placeholder="Button Path" />
+                        <label className="admin-checkline">
+                          <input type="checkbox" checked={Boolean(siteFooterCta.external)} onChange={(e) => setSiteFooterCta((prev) => ({ ...prev, external: e.target.checked }))} />
+                          <span>External Button Link</span>
+                        </label>
+                      </div>
+                      <div className="admin-modal-actions"><button className="btn btn-lime" onClick={() => run(saveFooterCtaOnly)}>Save Footer CTA</button></div>
+                    </>
+                  ) : null}
+
+                  {siteSection === 'loader' ? (
+                    <>
+                      <div className="admin-panel-head"><h2>Loader Settings</h2></div>
+                      <p className="admin-muted">Choose loading GIF and splash background type.</p>
+                      <div className="admin-cms-list">
+                        <label className="admin-file-upload">
+                          <input type="file" accept="image/gif,image/*" onChange={(e) => setLoaderGifFile(e.target.files?.[0] || null)} />
+                          <span className="admin-file-upload-trigger"><UploadIcon /><b>{loaderGifFile ? 'Change loading GIF' : 'Choose loading GIF'}</b></span>
+                          <small>{loaderGifFile ? loaderGifFile.name : 'GIF/PNG/JPG supported'}</small>
+                        </label>
+                        {(loaderGifFile || loaderGifUrl) ? (
+                          <div className="admin-upload-preview">
+                            <img src={loaderGifFile ? URL.createObjectURL(loaderGifFile) : loaderGifUrl} alt="Loader GIF preview" />
+                          </div>
+                        ) : null}
+
+                        <div className="admin-cms-item">
+                          <label>Background Type</label>
+                          <select value={loaderBgType} onChange={(e) => setLoaderBgType(e.target.value)}>
+                            <option value="color">Color</option>
+                            <option value="image">Image</option>
+                            <option value="gif">GIF</option>
+                          </select>
+                          <span />
+                          <span />
+                        </div>
+
+                        {loaderBgType === 'color' ? (
+                          <div className="admin-cms-item">
+                            <label>Background Color</label>
+                            <input type="color" value={loaderBgColor} onChange={(e) => { setLoaderBgColor(e.target.value); setLoaderBgHex(e.target.value); }} />
+                            <input value={loaderBgHex} onChange={(e) => { setLoaderBgHex(e.target.value); setLoaderBgColor(e.target.value); }} placeholder="#E3F7FD" />
+                            <span />
+                          </div>
+                        ) : (
+                          <>
+                            <label className="admin-file-upload">
+                              <input type="file" accept="image/*" onChange={(e) => setLoaderBgFile(e.target.files?.[0] || null)} />
+                              <span className="admin-file-upload-trigger"><UploadIcon /><b>{loaderBgFile ? 'Change background media' : 'Choose background media'}</b></span>
+                              <small>{loaderBgFile ? loaderBgFile.name : 'PNG/JPG/GIF supported'}</small>
+                            </label>
+                            {(loaderBgFile || loaderBgUrl) ? (
+                              <div className="admin-upload-preview">
+                                <img src={loaderBgFile ? URL.createObjectURL(loaderBgFile) : loaderBgUrl} alt="Loader background preview" />
+                              </div>
+                            ) : null}
+                          </>
+                        )}
+                        <div className="admin-cms-item">
+                          <label>Show Loader Every (Hours)</label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={loaderFrequencyHours}
+                            onChange={(e) => setLoaderFrequencyHours(e.target.value)}
+                          />
+                          <span />
+                          <span />
+                        </div>
+                      </div>
+                      <div className="admin-modal-actions"><button className="btn btn-lime" onClick={() => run(saveLoaderOnly)}>Save Loader</button></div>
+                    </>
+                  ) : null}
+
+                  {siteSection === 'theme' ? (
+                    <>
+                      <div className="admin-panel-head"><h2>Theme</h2></div>
+                      <p className="admin-muted">Set global website colors (dark-first).</p>
+                      <div className="admin-cms-list">
+                        <div className="admin-cms-item">
+                          <label>Primary</label>
+                          <input type="color" value={siteTheme.primary} onChange={(e) => setSiteTheme((p) => ({ ...p, primary: e.target.value }))} />
+                          <input value={siteTheme.primary} onChange={(e) => setSiteTheme((p) => ({ ...p, primary: e.target.value }))} />
+                          <span />
+                        </div>
+                        <div className="admin-cms-item">
+                          <label>Accent</label>
+                          <input type="color" value={siteTheme.accent} onChange={(e) => setSiteTheme((p) => ({ ...p, accent: e.target.value }))} />
+                          <input value={siteTheme.accent} onChange={(e) => setSiteTheme((p) => ({ ...p, accent: e.target.value }))} />
+                          <span />
+                        </div>
+                        <div className="admin-cms-item">
+                          <label>Light Background</label>
+                          <input type="color" value={siteTheme.light_bg} onChange={(e) => setSiteTheme((p) => ({ ...p, light_bg: e.target.value }))} />
+                          <input value={siteTheme.light_bg} onChange={(e) => setSiteTheme((p) => ({ ...p, light_bg: e.target.value }))} />
+                          <span />
+                        </div>
+                        <div className="admin-cms-item">
+                          <label>Black</label>
+                          <input type="color" value={siteTheme.black} onChange={(e) => setSiteTheme((p) => ({ ...p, black: e.target.value }))} />
+                          <input value={siteTheme.black} onChange={(e) => setSiteTheme((p) => ({ ...p, black: e.target.value }))} />
+                          <span />
+                        </div>
+                        <div className="admin-cms-item">
+                          <label>Warm</label>
+                          <input type="color" value={siteTheme.warm} onChange={(e) => setSiteTheme((p) => ({ ...p, warm: e.target.value }))} />
+                          <input value={siteTheme.warm} onChange={(e) => setSiteTheme((p) => ({ ...p, warm: e.target.value }))} />
+                          <span />
+                        </div>
+                      </div>
+                      <div className="admin-modal-actions"><button className="btn btn-lime" onClick={() => run(saveThemeOnly)}>Save Theme</button></div>
+                    </>
+                  ) : null}
+                </div>
+              </div>
+            </section>
+            ) : null}
+
+            {siteSection === 'pages' ? (
+              <section className="admin-panel admin-cms-panel" style={{ marginTop: 16 }}>
+              <div className="admin-panel-head">
+                <h2>Custom Pages</h2>
+                <button className="btn btn-lime" onClick={openCreateCustomPage}>+ Add Page</button>
+              </div>
+              <p className="admin-muted">Create additional pages available on `/page/slug`.</p>
+              <table className="mc-list-table">
+                <thead><tr><th>Title</th><th>Slug</th><th>Published</th><th>Actions</th></tr></thead>
+                <tbody>
+                  {customPages.map((row) => (
+                    <tr key={row.id}>
+                      <td>{row.title}</td>
+                      <td>/page/{row.slug}</td>
+                      <td>{row.is_published ? 'Yes' : 'No'}</td>
+                      <td className="mc-actions-cell">
+                        <button onClick={() => openEditCustomPage(row)}>Edit</button>
+                        <button
+                          onClick={() =>
+                            setConfirmModal({
+                              title: 'Delete Page',
+                              message: `Delete page "${row.title}"? This cannot be undone.`,
+                              confirmText: 'Delete',
+                              onConfirm: async () => {
+                                await adminDeleteCustomPage(row.id);
+                                await loadCustomPages();
+                              },
+                            })
+                          }
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              </section>
+            ) : null}
+          </>
+        ) : null}
       </main>
 
 
@@ -939,6 +2202,25 @@ export default function AdminPanelPage() {
               >
                 Create
               </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {customPageModal ? (
+        <div className="admin-modal-overlay" onClick={() => setCustomPageModal(null)}>
+          <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>{customPageModal.mode === 'edit' ? 'Edit Page' : 'Create Page'}</h3>
+            <input value={customPageTitle} onChange={(e) => setCustomPageTitle(e.target.value)} placeholder="Title" />
+            <input value={customPageSlug} onChange={(e) => setCustomPageSlug(e.target.value)} placeholder="Slug (about-us)" />
+            <RichTextEditor value={customPageBody} onChange={setCustomPageBody} />
+            <label className="admin-checkline">
+              <input type="checkbox" checked={customPagePublished} onChange={(e) => setCustomPagePublished(e.target.checked)} />
+              <span>Published</span>
+            </label>
+            <div className="admin-modal-actions">
+              <button className="btn btn-outline" onClick={() => setCustomPageModal(null)}>Cancel</button>
+              <button className="btn btn-lime" onClick={() => run(saveCustomPage)} disabled={busy || !customPageTitle.trim() || !customPageSlug.trim()}>Save</button>
             </div>
           </div>
         </div>

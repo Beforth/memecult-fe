@@ -1,0 +1,24 @@
+.cult-static-page {
+  width: min(720px, 94%);
+  margin: 0 auto;
+  padding: clamp(32px, 6vh, 64px) 0;
+  color: var(--cult-text, #e8eeff);
+}
+
+.cult-static-page h1 {
+  font-family: 'Orbitron', 'Inter', sans-serif;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.cult-static-page p {
+  line-height: 1.7;
+  color: var(--cult-muted, rgba(200, 215, 255, 0.78));
+  font-size: 1rem;
+}
+
+.cult-static-muted {
+  font-style: italic;
+}

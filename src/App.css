@@ -1,7 +1,17 @@
 .app-shell {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
+}
+
+.app-site-content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  position: relative;
 }
 
 .main-home,
@@ -35,4 +45,60 @@
   height: 100vh;
   border: 0;
   display: block;
+}
+
+.app-shell.boot-checking,
+.app-shell.boot-loading {
+  overflow: hidden;
+  height: 100vh;
+  height: 100dvh;
+}
+
+.app-shell.boot-checking {
+  background: #03050f;
+}
+
+.app-shell.boot-checking .app-site-content,
+.app-shell.boot-loading .app-site-content {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.boot-loader-overlay{
+  position:fixed;
+  inset:0;
+  background:#E3F7FD;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  align-items:center;
+  justify-content:center;
+  z-index:10000;
+  cursor:default;
+}
+
+.boot-loader-overlay.can-enter{ cursor:pointer; }
+
+.boot-loader-gif{
+  width:min(420px,72vw);
+  height:auto;
+  image-rendering:pixelated;
+  filter:drop-shadow(0 16px 34px rgba(32,32,99,.22));
+}
+
+.boot-loader-actions{
+  display:grid;
+  gap:0;
+  justify-items:center;
+}
+
+.boot-loader-text{
+  margin:0;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  color:#202063;
+  font-weight:800;
+  font-size:14px;
 }

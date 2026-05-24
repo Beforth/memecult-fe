@@ -185,12 +185,145 @@ export function adminUpdateContentPage(id, payload) {
   });
 }
 
+export function adminListSiteConfig(query = '') {
+  return adminApi(`/admin/site-config/${query}`);
+}
+
+export function adminGetSiteConfig(id) {
+  return adminApi(`/admin/site-config/${id}/`);
+}
+
+export function adminCreateSiteConfig(payload) {
+  const isForm = payload instanceof FormData;
+  return adminApi('/admin/site-config/', {
+    method: 'POST',
+    headers: isForm ? undefined : { 'Content-Type': 'application/json' },
+    body: isForm ? payload : JSON.stringify(payload),
+  });
+}
+
+export function adminUpdateSiteConfig(id, payload) {
+  const isForm = payload instanceof FormData;
+  return adminApi(`/admin/site-config/${id}/`, {
+    method: 'PATCH',
+    headers: isForm ? undefined : { 'Content-Type': 'application/json' },
+    body: isForm ? payload : JSON.stringify(payload),
+  });
+}
+
+export function adminDeleteSiteConfig(id) {
+  return adminApi(`/admin/site-config/${id}/`, {
+    method: 'DELETE',
+  });
+}
+
+export function adminUpdateSiteConfigNav(id, navItems) {
+  return adminApi(`/admin/site-config/${id}/nav/`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nav_items: navItems }),
+  });
+}
+
+export function adminUpdateSiteConfigFooterSections(id, footerSections) {
+  return adminApi(`/admin/site-config/${id}/footer-sections/`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ footer_sections: footerSections }),
+  });
+}
+
+export function adminUpdateSiteConfigFooterCta(id, footerCta) {
+  return adminApi(`/admin/site-config/${id}/footer-cta/`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ footer_cta: footerCta }),
+  });
+}
+
+export function adminUpdateSiteConfigLoader(id, formData) {
+  return adminApi(`/admin/site-config/${id}/loader/`, {
+    method: 'PATCH',
+    body: formData,
+  });
+}
+
+export function adminUpdateSiteConfigBranding(id, formData) {
+  return adminApi(`/admin/site-config/${id}/branding/`, {
+    method: 'PATCH',
+    body: formData,
+  });
+}
+
+export function adminUpdateSiteConfigHero(id, formData) {
+  return adminApi(`/admin/site-config/${id}/hero/`, {
+    method: 'PATCH',
+    body: formData,
+  });
+}
+
+export function adminUpdateSiteConfigHomeBar(id, homeBar) {
+  return adminApi(`/admin/site-config/${id}/home-bar/`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ home_bar: homeBar }),
+  });
+}
+
+export function adminActivateSiteConfig(id) {
+  return adminApi(`/admin/site-config/${id}/activate/`, {
+    method: 'POST',
+  });
+}
+
+export function adminListCustomPages(query = '') {
+  return adminApi(`/admin/custom-pages/${query}`);
+}
+
+export function adminGetCustomPage(id) {
+  return adminApi(`/admin/custom-pages/${id}/`);
+}
+
+export function adminCreateCustomPage(payload) {
+  return adminApi('/admin/custom-pages/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+}
+
+export function adminUpdateCustomPage(id, payload) {
+  return adminApi(`/admin/custom-pages/${id}/`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+}
+
+export function adminDeleteCustomPage(id) {
+  return adminApi(`/admin/custom-pages/${id}/`, {
+    method: 'DELETE',
+  });
+}
+
 export function getPublicContentPage(pageType) {
   return api(`/content/${pageType}/`);
 }
 
 export function getPublicRoadmap() {
   return api('/roadmap/');
+}
+
+export function getPublicSiteConfig() {
+  return api(`/site-config/?t=${Date.now()}`);
+}
+
+export function listPublicPages() {
+  return api('/pages/');
+}
+
+export function getPublicPageBySlug(slug) {
+  return api(`/pages/${slug}/`);
 }
 
 export function listMemes(params = '') {

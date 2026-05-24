@@ -28,11 +28,11 @@ export default function RoadmapPage() {
   }, []);
 
   return (
-    <section className="roadmap-shell">
-      <div className="roadmap-head">
+    <section className="roadmap-shell cult-page-shell">
+      <header className="roadmap-head cult-page-head">
         <h2>Roadmap</h2>
         <p>Live milestones managed from admin panel.</p>
-      </div>
+      </header>
 
       {error ? <p className="error">{error}</p> : null}
 

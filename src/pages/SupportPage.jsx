@@ -20,13 +20,13 @@ export default function SupportPage() {
   }, []);
 
   return (
-    <section className="page-shell">
-      <div className="sec-head left">
+    <section className="page-shell cult-page-shell">
+      <header className="sec-head left cult-page-head">
         <h2>{title}</h2>
         <p>Need help with MemeCult? Reach us through the channels below.</p>
-      </div>
+      </header>
 
-      <div className="neo-panel">
+      <div className="neo-panel cult-glass-panel">
         {body ? (
           <div className="rich-content" dangerouslySetInnerHTML={{ __html: body }} />
         ) : (

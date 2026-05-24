@@ -20,13 +20,13 @@ export default function PrivacyPage() {
   }, []);
 
   return (
-    <section className="page-shell">
-      <div className="sec-head left">
+    <section className="page-shell cult-page-shell">
+      <header className="sec-head left cult-page-head">
         <h2>{title}</h2>
         <p>How MemeCult collects and uses data.</p>
-      </div>
+      </header>
 
-      <div className="neo-panel">
+      <div className="neo-panel cult-glass-panel">
         {body ? (
           <div className="rich-content" dangerouslySetInnerHTML={{ __html: body }} />
         ) : (

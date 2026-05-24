@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { googleLogin } from '../api/client';
+import { googleLogin, getPublicSiteConfig } from '../api/client';
+import { DEFAULT_SITE_LOGO, resolveSiteLogo } from '../utils/siteMedia';
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
@@ -9,6 +10,7 @@ export default function LoginPage() {
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
   const [ready, setReady] = useState(false);
+  const [siteLogoSrc, setSiteLogoSrc] = useState(DEFAULT_SITE_LOGO);
 
   async function submitIdToken(idToken) {
     const data = await googleLogin(idToken);
@@ -20,6 +22,12 @@ export default function LoginPage() {
     setStatus(`Signed in as ${data.user.email}`);
     navigate('/');
   }
+
+  useEffect(() => {
+    getPublicSiteConfig()
+      .then((cfg) => setSiteLogoSrc(resolveSiteLogo(cfg)))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!googleClientId) {
@@ -66,7 +74,7 @@ export default function LoginPage() {
   return (
     <section className="login-shell">
       <div className="login-card">
-        <img src="/images/memecult-logo.png" alt="MemeCult" className="login-logo" />
+        <img src={siteLogoSrc} alt="MemeCult" className="login-logo" />
         <h2>Continue to MemeCult</h2>
         <p>Sign in with Google to continue to MemeCult.</p>
 
