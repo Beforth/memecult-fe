@@ -134,8 +134,13 @@ export default function NavBar() {
   return (
     <header className="site-topbar">
       <div className="site-topbar-inner">
-        <Link to="/" className="site-logo-link">
-          <img src={siteLogoSrc} alt="MemeCult" className="site-logo" />
+        <Link to="/" className="site-brand-capsule-link">
+          <div className="brand-logo-circle">
+            <img src={siteLogoSrc} alt="" className="brand-logo-img" />
+          </div>
+          <div className="brand-name-pill">
+            <span>FUTARDIO CULT</span>
+          </div>
         </Link>
 
         <nav className="site-menu" ref={navRef}>
@@ -172,9 +177,8 @@ export default function NavBar() {
               </button>
             </>
           ) : (
-            <Link to="/login" className="site-btn site-btn-lime site-btn-cult">
-              Join the Cult
-              <img src="/images/avatar.png" alt="" className="site-btn-avatar" />
+            <Link to="/login" className="site-btn-login-canva">
+              Login
             </Link>
           )}
         </div>

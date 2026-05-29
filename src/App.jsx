@@ -17,6 +17,7 @@ import AdminLoginPage from './pages/AdminLoginPage';
 import AdminPanelPage from './pages/AdminPanelPage';
 import AdminPageBuilder from './pages/AdminPageBuilder';
 import AdminRoute from './components/AdminRoute';
+import AssetsPage from './pages/AssetsPage';
 import './App.css';
 
 const BOOT_LAST_SEEN_KEY = 'memecult_loader_last_seen_at';
@@ -267,7 +268,7 @@ export default function App() {
       ) : null}
 
       <div className="app-site-content" aria-hidden={siteHidden}>
-        {isCultThemed && !isHome ? (
+        {isCultThemed ? (
           <div className="cult-site-bg" aria-hidden="true">
             <div className="cult-stars" />
             <div className="cult-nebula" />
@@ -283,6 +284,7 @@ export default function App() {
             <Route path="/roadmap" element={<RoadmapPage />} />
             <Route path="/futardio-card" element={<FutardioCardPage />} />
             <Route path="/memes" element={<MemesPage />} />
+            <Route path="/assets" element={<AssetsPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/support" element={<SupportPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
@@ -293,7 +295,7 @@ export default function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
-        {showSiteChrome && !isEditor && !isHome ? <Footer /> : null}
+        {showSiteChrome && !isEditor && !isHome && location.pathname !== '/about' && location.pathname !== '/memes' && location.pathname !== '/assets' ? <Footer /> : null}
       </div>
     </div>
   );
