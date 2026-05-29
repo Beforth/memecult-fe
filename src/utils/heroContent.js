@@ -1,6 +1,14 @@
 import { normalizeMediaUrl } from './siteMedia';
 
 export const DEFAULT_HERO_CONTENT = {
+  title_prefix: 'The first ever',
+  title_cursive: 'futarchy',
+  title_suffix: 'governed\nmeme coin',
+  enter_label: 'Enter the cult',
+  enter_path: '/editor',
+  desc_1: 'Futardio Cult is a community-driven meme coin, built on futarchy principles.',
+  desc_2: 'Unruggable by the Holly book of metaDAO.',
+
   cards_heading: 'A glimpse of our generated cards',
   cards_subheading: 'We turn ideas into assets.',
   explore_label: 'Explore Features',
@@ -39,6 +47,14 @@ export function resolveHeroContent(config) {
     : DEFAULT_HERO_CONTENT.cards.map((card) => ({ ...card, image: '' }));
 
   return {
+    title_prefix: raw?.title_prefix || DEFAULT_HERO_CONTENT.title_prefix,
+    title_cursive: raw?.title_cursive || DEFAULT_HERO_CONTENT.title_cursive,
+    title_suffix: raw?.title_suffix || DEFAULT_HERO_CONTENT.title_suffix,
+    enter_label: raw?.enter_label || DEFAULT_HERO_CONTENT.enter_label,
+    enter_path: raw?.enter_path || DEFAULT_HERO_CONTENT.enter_path,
+    desc_1: raw?.desc_1 || DEFAULT_HERO_CONTENT.desc_1,
+    desc_2: raw?.desc_2 || DEFAULT_HERO_CONTENT.desc_2,
+
     cards_heading: raw?.cards_heading || DEFAULT_HERO_CONTENT.cards_heading,
     cards_subheading: raw?.cards_subheading || DEFAULT_HERO_CONTENT.cards_subheading,
     explore_label: raw?.explore_label || DEFAULT_HERO_CONTENT.explore_label,

@@ -27,6 +27,7 @@ export function normalizeMediaUrl(url) {
       return url;
     }
   }
+  if (url.startsWith('/images/') || url.startsWith('/assets/')) return url;
   if (url.startsWith('/')) return `${apiOrigin}${url}`;
   return `${apiOrigin}/${url}`;
 }

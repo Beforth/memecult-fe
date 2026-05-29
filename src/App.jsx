@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { getPublicSiteConfig } from './api/client';
 import NavBar from './components/NavBar';
@@ -17,6 +17,7 @@ import AdminLoginPage from './pages/AdminLoginPage';
 import AdminPanelPage from './pages/AdminPanelPage';
 import AdminPageBuilder from './pages/AdminPageBuilder';
 import AdminRoute from './components/AdminRoute';
+import AssetsPage from './pages/AssetsPage';
 import './App.css';
 
 const BOOT_LAST_SEEN_KEY = 'memecult_loader_last_seen_at';
@@ -35,6 +36,7 @@ export default function App() {
   const [loaderBgMedia, setLoaderBgMedia] = useState('');
   const [loaderFrequencyHours, setLoaderFrequencyHours] = useState(24);
   const [introVideoSrc, setIntroVideoSrc] = useState(INTRO_VIDEO_FALLBACK);
+  const [pageBackgrounds, setPageBackgrounds] = useState({});
   const isHome = location.pathname === '/';
   const isAdmin = location.pathname.startsWith('/admin');
   const isEditor = location.pathname === '/editor';
@@ -107,6 +109,7 @@ export default function App() {
           return url;
         }
       }
+      if (url.startsWith('/images/') || url.startsWith('/assets/')) return url;
       if (url.startsWith('/')) return `${apiOrigin}${url}`;
       return `${apiOrigin}/${url}`;
     };
@@ -142,6 +145,16 @@ export default function App() {
         if (cfg?.loader_background_media) setLoaderBgMedia(normalize(cfg.loader_background_media));
         const introUrl = cfg?.intro_video ? normalize(cfg.intro_video) : INTRO_VIDEO_FALLBACK;
         setIntroVideoSrc(introUrl);
+        if (cfg?.page_backgrounds) {
+          const normalizedBgs = {};
+          Object.entries(cfg.page_backgrounds).forEach(([k, v]) => {
+            normalizedBgs[k] = {
+              ...v,
+              image: v.image ? normalize(v.image) : ''
+            };
+          });
+          setPageBackgrounds(normalizedBgs);
+        }
         const frequencyHours = Math.max(1, Number(cfg?.loader_frequency_hours || 24));
         setLoaderFrequencyHours(frequencyHours);
         const lastSeen = Number(localStorage.getItem(BOOT_LAST_SEEN_KEY) || 0);
@@ -219,6 +232,35 @@ export default function App() {
   const videoVisible = bootPhase === 'video';
   const siteHidden = bootChecking || loaderVisible || videoVisible;
 
+  const pageKey = useMemo(() => {
+    const path = location.pathname;
+    if (path === '/') return 'home';
+    if (path === '/about') return 'about';
+    if (path === '/roadmap') return 'roadmap';
+    if (path === '/memes') return 'memes';
+    if (path === '/assets') return 'assets';
+    if (path === '/editor') return 'editor';
+    if (path === '/support') return 'support';
+    if (path === '/privacy') return 'privacy';
+    if (path.startsWith('/page/')) return 'custom';
+    return 'home';
+  }, [location.pathname]);
+
+  const bgStyle = useMemo(() => {
+    const settings = pageBackgrounds[pageKey] || {};
+    const imgUrl = settings.image || '/images/bg.png';
+    const opacity = settings.overlay_opacity !== undefined ? settings.overlay_opacity : 0.92;
+    const blurVal = settings.blur !== undefined ? settings.blur : (pageKey === 'home' ? 0 : 18);
+
+    return {
+      background: `linear-gradient(to bottom, rgba(217, 239, 252, ${opacity}) 0%, rgba(217, 239, 252, ${opacity}) 100%), url('${imgUrl}') no-repeat center center`,
+      backgroundSize: 'cover',
+      filter: blurVal > 0 ? `blur(${blurVal}px) brightness(1.02) saturate(110%)` : 'none',
+      transform: blurVal > 0 ? 'scale(1.06)' : 'none',
+      transition: 'filter 0.3s ease, transform 0.3s ease, background 0.3s ease',
+    };
+  }, [pageBackgrounds, pageKey]);
+
   return (
     <div
       className={`app-shell ${isHome ? 'home-mode' : ''} ${isCultThemed ? 'cult-site-mode' : ''} ${bootChecking ? 'boot-checking' : ''} ${loaderVisible ? 'boot-loading' : ''} ${videoVisible ? 'boot-video' : ''}`}
@@ -267,8 +309,8 @@ export default function App() {
       ) : null}
 
       <div className="app-site-content" aria-hidden={siteHidden}>
-        {isCultThemed && !isHome ? (
-          <div className="cult-site-bg" aria-hidden="true">
+        {isCultThemed ? (
+          <div className="cult-site-bg" style={bgStyle} aria-hidden="true">
             <div className="cult-stars" />
             <div className="cult-nebula" />
           </div>
@@ -283,6 +325,7 @@ export default function App() {
             <Route path="/roadmap" element={<RoadmapPage />} />
             <Route path="/futardio-card" element={<FutardioCardPage />} />
             <Route path="/memes" element={<MemesPage />} />
+            <Route path="/assets" element={<AssetsPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/support" element={<SupportPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
@@ -293,7 +336,7 @@ export default function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
-        {showSiteChrome && !isEditor && !isHome ? <Footer /> : null}
+        {showSiteChrome && !isEditor && !isHome && location.pathname !== '/about' && location.pathname !== '/memes' && location.pathname !== '/assets' ? <Footer /> : null}
       </div>
     </div>
   );

@@ -1,766 +1,281 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Orbitron:wght@500;600;700;800&display=swap');
+/* --- Canva 1:1 Page 2 Home Page Precise Stylesheet --- */
 
-/* ── Home shell overrides (pairs with .home-mode on app-shell) ── */
-.home-mode {
-  --cult-nav-h: 88px;
-  background: #03050f;
+.canva-home-page {
+  width: 100%;
+  min-height: calc(100vh - var(--cult-nav-h, 88px));
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  height: 100dvh;
-  max-height: 100vh;
-  max-height: 100dvh;
-  overflow: hidden;
-}
-
-.home-mode .app-site-content {
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.home-mode .site-topbar {
-  flex-shrink: 0;
-  overflow: visible;
-  z-index: 3000;
+  justify-content: flex-start;
   position: relative;
+  padding: 32px 0 24px;
+  z-index: 1;
 }
 
-.home-mode .main-home {
+.canva-home-content {
+  width: min(1120px, 94%);
+  margin: 0 auto;
   flex: 1;
-  min-height: 0;
-  max-width: none;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 32px;
 }
 
-/* ── Hero page ── */
-.cult-hero-page {
-  --cult-bg: #03050f;
-  --cult-panel: rgba(8, 18, 48, 0.55);
-  --cult-border: rgba(100, 150, 255, 0.28);
-  --cult-orange: #ff5a1f;
-  --cult-orange-glow: rgba(255, 90, 40, 0.65);
-  --cult-gold: #e8b84a;
-  --cult-text: #e8eeff;
-  --cult-muted: rgba(200, 215, 255, 0.72);
-  --cult-nav-h: 88px;
-  --cult-footer-h: 84px;
-  --cult-hero-h: calc(100vh - var(--cult-nav-h));
-  --cult-hero-h: calc(100dvh - var(--cult-nav-h));
-  --cult-figure-h: 100%;
-  --cult-z-portal: 4;
-  --cult-z-panels: 8;
-  --cult-z-figure: 22;
-  --cult-z-footer: 25;
-
+/* Hero Section */
+.canva-hero-section {
+  text-align: center;
+  margin-top: clamp(12px, 2vh, 32px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
   position: relative;
+  flex: 1 0 auto;
+}
+
+/* Centered large watermark logo behind hero text */
+.canva-hero-watermark-logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: clamp(260px, 36vw, 380px);
+  height: clamp(260px, 36vw, 380px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.13;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.canva-hero-watermark-logo img {
   width: 100%;
   height: 100%;
-  min-height: 100%;
-  max-height: 100%;
-  color: var(--cult-text);
-  font-family: 'Inter', system-ui, sans-serif;
-  overflow: hidden;
-}
-
-.cult-hero-bg {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background: radial-gradient(ellipse 80% 60% at 50% 40%, #0a1638 0%, var(--cult-bg) 70%);
-  pointer-events: none;
-}
-
-.cult-stars {
-  position: absolute;
-  inset: 0;
-  background-image:
-    radial-gradient(1px 1px at 10% 20%, rgba(255, 255, 255, 0.55), transparent),
-    radial-gradient(1px 1px at 30% 65%, rgba(255, 255, 255, 0.35), transparent),
-    radial-gradient(1.5px 1.5px at 55% 15%, rgba(255, 255, 255, 0.5), transparent),
-    radial-gradient(1px 1px at 72% 42%, rgba(255, 255, 255, 0.4), transparent),
-    radial-gradient(1px 1px at 88% 78%, rgba(255, 255, 255, 0.45), transparent),
-    radial-gradient(1px 1px at 45% 88%, rgba(255, 255, 255, 0.3), transparent);
-  opacity: 0.8;
-}
-
-.cult-nebula {
-  position: absolute;
-  inset: -20% -10%;
-  background:
-    radial-gradient(circle at 50% 45%, rgba(255, 80, 30, 0.22) 0%, transparent 42%),
-    radial-gradient(circle at 20% 70%, rgba(60, 100, 255, 0.12) 0%, transparent 35%);
-  animation: cult-nebula-pulse 8s ease-in-out infinite alternate;
-}
-
-@keyframes cult-nebula-pulse {
-  from { opacity: 0.7; transform: scale(1); }
-  to { opacity: 1; transform: scale(1.04); }
-}
-
-.cult-hero-wrap {
-  position: relative;
-  z-index: auto;
-  width: min(1480px, 96%);
-  height: 100%;
-  min-height: 0;
-  margin: 0 auto;
-  padding: clamp(8px, 1.5vh, 16px) 0 0;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-}
-
-.cult-hero {
-  flex: 1;
-  display: grid;
-  grid-template-columns: minmax(260px, 28vw) minmax(320px, 1fr) minmax(240px, 26vw);
-  grid-template-rows: 1fr;
-  gap: clamp(8px, 1.5vw, 20px);
-  align-items: center;
-  padding: 0 clamp(4px, 1vw, 12px);
-  height: 100%;
-  min-height: 0;
-  box-sizing: border-box;
-  position: relative;
-  overflow: visible;
-}
-
-.cult-portal {
-  grid-column: 1 / -1;
-  grid-row: 1;
-  position: absolute;
-  left: 50%;
-  top: 42%;
-  transform: translate(-50%, -50%);
-  width: min(92vw, 760px);
-  height: min(92vw, 760px);
-  max-width: min(78vh, 760px);
-  max-height: min(78vh, 760px);
-  margin: 0;
-  justify-self: center;
-  align-self: center;
-  z-index: var(--cult-z-portal);
-}
-
-.cult-panel-left {
-  grid-column: 1;
-  grid-row: 1;
-}
-
-.cult-panel-right {
-  grid-column: 3;
-  grid-row: 1;
-}
-
-.cult-hero-center {
-  grid-column: 2;
-  grid-row: 1;
-}
-
-/* ── Glass panels ── */
-.cult-panel {
-  background: var(--cult-panel);
-  border: 1px solid var(--cult-border);
-  border-radius: 14px;
-  padding: clamp(20px, 2.5vw, 28px);
-  backdrop-filter: blur(18px) saturate(140%);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.04) inset,
-    0 24px 60px rgba(0, 0, 0, 0.45),
-    0 0 40px rgba(60, 120, 255, 0.08);
-  align-self: center;
-  margin: 0;
-  max-height: min(460px, calc(100% - var(--cult-footer-h) - 24px));
-  overflow: auto;
-  position: relative;
-  z-index: var(--cult-z-panels);
-  pointer-events: auto;
-}
-
-.cult-panel-left,
-.cult-panel-right {
-  align-self: center;
-  z-index: calc(var(--cult-z-panels) + 2);
-}
-
-.cult-panel-left {
-  justify-self: stretch;
-  width: auto;
-  max-width: 100%;
-  transform: translateY(clamp(-64px, -14vh, -120px));
-}
-
-.cult-panel-right {
-  justify-self: stretch;
-  width: auto;
-  max-width: 100%;
-  transform: translateY(clamp(-64px, -14vh, -120px));
-}
-
-.cult-panel-left h1 {
-  font-family: 'Orbitron', 'Inter', sans-serif;
-  font-size: clamp(1.1rem, 1.8vw, 1.45rem);
-  font-weight: 700;
-  line-height: 1.35;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  margin: 16px 0 14px;
-}
-
-.cult-accent {
-  color: var(--cult-orange);
-  text-shadow: 0 0 24px var(--cult-orange-glow);
-}
-
-.cult-panel-left > p {
-  color: var(--cult-muted);
-  font-size: clamp(0.82rem, 1.1vw, 0.92rem);
-  line-height: 1.65;
-  font-weight: 500;
-}
-
-.cult-panel-badge {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 180, 80, 0.5);
-  display: grid;
-  place-items: center;
-  background: rgba(0, 0, 0, 0.35);
-  box-shadow: 0 0 20px rgba(255, 120, 40, 0.25);
-}
-
-.cult-panel-logo {
-  width: 28px;
-  height: 28px;
   object-fit: contain;
 }
 
-.cult-panel-right h2 {
-  font-family: 'Orbitron', sans-serif;
-  font-size: clamp(0.85rem, 1.3vw, 1rem);
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-bottom: 6px;
+.canva-main-title,
+.canva-hero-action-box,
+.canva-sub-descriptions {
+  position: relative;
+  z-index: 1;
 }
 
-.cult-panel-sub {
-  color: var(--cult-muted);
-  font-size: 0.82rem;
-  margin-bottom: 18px;
+.canva-main-title {
+  font-family: 'Milonga', cursive;
+  font-size: clamp(2.3rem, 5vw, 4.4rem);
+  line-height: 1.15;
+  color: #1a233d;
+  margin: 0 0 28px;
+  font-weight: 600;
 }
 
-.cult-cards {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-bottom: 18px;
+.canva-cursive-text {
+  font-family: 'Italianno', cursive;
+  color: #4ebfdf;
+  font-weight: 400;
+  font-size: 1.55em;
 }
 
-.cult-card {
-  border-radius: 10px;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(0, 0, 0, 0.35);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+.canva-hero-action-box {
+  margin-bottom: 24px;
 }
 
-.cult-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
-}
-
-.cult-card-art {
-  aspect-ratio: 3 / 4;
-  min-height: 100px;
-}
-
-.cult-card span {
-  display: block;
-  text-align: center;
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  padding: 8px 4px 10px;
-  color: rgba(230, 240, 255, 0.9);
-}
-
-.cult-explore-btn {
+/* Rounded Dark Red Calligraphic Enter button */
+.canva-enter-btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 11px 18px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 120, 60, 0.55);
-  background: rgba(255, 70, 30, 0.12);
-  color: #e8eeff;
+  justify-content: center;
+  background: #a11c0c;
+  color: #ffffff;
+  font-family: 'Milonga', cursive;
   font-weight: 700;
-  font-size: 0.78rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 1.45rem;
+  padding: 10px 48px;
+  border-radius: 14px;
   text-decoration: none;
-  transition: background 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 18px rgba(161, 28, 12, 0.35);
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-.cult-explore-btn:hover {
-  background: rgba(255, 70, 30, 0.22);
-  color: #fff;
-  box-shadow: 0 0 20px rgba(255, 80, 30, 0.3);
+.canva-enter-btn:hover {
+  background: #bd2312;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(161, 28, 12, 0.5);
 }
 
-.cult-panel-right .cult-explore-btn {
-  display: flex;
-  width: fit-content;
-  margin-left: auto;
-  margin-right: 0;
-}
-
-/* ── Center figure (extends to viewport bottom, behind ticker bar) ── */
-.cult-hero-center {
-  position: relative;
-  z-index: var(--cult-z-figure);
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  justify-self: center;
-  width: 100%;
-  height: var(--cult-figure-h);
-  min-height: var(--cult-figure-h);
-  padding: 0;
-  margin: 0;
-  align-self: end;
-  pointer-events: none;
-}
-
-.cult-hero-center::before,
-.cult-hero-center::after {
-  content: '';
-  position: absolute;
-  bottom: 10%;
-  width: 34%;
-  height: 58%;
-  pointer-events: none;
-  z-index: 0;
-  filter: blur(20px);
-  opacity: 0.55;
-}
-
-.cult-hero-center::before {
-  left: 8%;
-  background: radial-gradient(
-    ellipse at left center,
-    rgba(59, 130, 246, 0.45) 0%,
-    rgba(59, 130, 246, 0.12) 50%,
-    transparent 72%
-  );
-}
-
-.cult-hero-center::after {
-  right: 8%;
-  background: radial-gradient(
-    ellipse at right center,
-    rgba(239, 68, 68, 0.45) 0%,
-    rgba(239, 68, 68, 0.12) 50%,
-    transparent 72%
-  );
-}
-
-.cult-portal {
-  aspect-ratio: 1;
-  pointer-events: none;
-}
-
-.cult-portal-ring {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: none;
-  background: conic-gradient(
-    from 0deg,
-    #ef4444 0deg 180deg,
-    #3b82f6 180deg 360deg
-  );
-  -webkit-mask: radial-gradient(
-    farthest-side,
-    transparent calc(100% - 4px),
-    #000 calc(100% - 3px)
-  );
-  mask: radial-gradient(
-    farthest-side,
-    transparent calc(100% - 4px),
-    #000 calc(100% - 3px)
-  );
-  box-shadow:
-    -24px 0 48px rgba(59, 130, 246, 0.45),
-    24px 0 48px rgba(239, 68, 68, 0.45),
-    0 0 60px rgba(59, 130, 246, 0.15),
-    0 0 60px rgba(239, 68, 68, 0.15);
-}
-
-.cult-portal-ring-outer {
-  animation: cult-ring-pulse 4s ease-in-out infinite;
-}
-
-.cult-portal-ring-inner {
-  inset: 14%;
-  background: conic-gradient(
-    from 0deg,
-    rgba(255, 90, 70, 0.95) 0deg 180deg,
-    rgba(96, 165, 250, 0.95) 180deg 360deg
-  );
-  -webkit-mask: radial-gradient(
-    farthest-side,
-    transparent calc(100% - 3px),
-    #000 calc(100% - 2px)
-  );
-  mask: radial-gradient(
-    farthest-side,
-    transparent calc(100% - 3px),
-    #000 calc(100% - 2px)
-  );
-  box-shadow:
-    -16px 0 32px rgba(59, 130, 246, 0.35),
-    16px 0 32px rgba(239, 68, 68, 0.35);
-  animation: cult-ring-pulse 4s ease-in-out infinite reverse;
-}
-
-.cult-portal-logo {
-  position: absolute;
-  inset: 32%;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  opacity: 0.35;
-}
-
-.cult-portal-logo img {
-  width: 72%;
-  height: 72%;
-  object-fit: contain;
-}
-
-@keyframes cult-ring-pulse {
-  0%, 100% { opacity: 0.78; filter: brightness(0.95); }
-  50% { opacity: 1; filter: brightness(1.08); }
-}
-
-.cult-hero-figure {
-  position: relative;
-  z-index: calc(var(--cult-z-figure) + 1);
-  display: block;
-  height: var(--cult-figure-h);
-  width: auto;
-  max-width: min(62vw, 1020px);
-  max-height: var(--cult-figure-h);
-  object-fit: contain;
-  object-position: bottom center;
-  transform: scale(1.26);
-  transform-origin: bottom center;
-  filter:
-    drop-shadow(-18px 0 28px rgba(59, 130, 246, 0.32))
-    drop-shadow(18px 0 28px rgba(239, 68, 68, 0.32))
-    drop-shadow(0 20px 45px rgba(0, 0, 0, 0.7));
-  pointer-events: none;
-  user-select: none;
-  margin: 0;
-  vertical-align: bottom;
-}
-
-.cult-pedestal {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: calc(var(--cult-z-figure) + 1);
-  pointer-events: none;
-  width: min(220px, 55%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.cult-pedestal-glow {
-  width: 100%;
-  height: 28px;
-  background: radial-gradient(ellipse at center, rgba(255, 160, 60, 0.55) 0%, transparent 70%);
-  animation: cult-glow-pulse 3s ease-in-out infinite;
-}
-
-@keyframes cult-glow-pulse {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
-}
-
-.cult-coin {
-  margin-top: -8px;
-  width: 88px;
-  height: 88px;
-  border-radius: 50%;
-  background: linear-gradient(145deg, #f5d06a 0%, #c8942e 45%, #8a5e12 100%);
-  border: 2px solid rgba(255, 220, 140, 0.6);
-  box-shadow:
-    0 0 24px rgba(255, 180, 60, 0.5),
-    inset 0 2px 8px rgba(255, 255, 255, 0.35);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Orbitron', sans-serif;
-  animation: cult-coin-float 4s ease-in-out infinite;
-}
-
-.cult-coin span {
-  font-size: 0.52rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  color: #3d2505;
-  line-height: 1.1;
-}
-
-.cult-coin small {
-  font-size: 0.42rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  color: #5a3810;
-}
-
-@keyframes cult-coin-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-}
-
-/* ── Bottom bar (overlay; sits in front of figure) ── */
-.cult-hero-bar {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: var(--cult-z-footer);
-  padding: 18px 0;
-  min-height: var(--cult-footer-h);
-  border-top: 1px solid rgba(255, 70, 30, 0.45);
-  border-bottom: 1px solid rgba(255, 70, 30, 0.45);
-  background: rgba(4, 10, 28, 0.94);
-  backdrop-filter: blur(12px);
-  pointer-events: auto;
-}
-
-.cult-hero-bar-inner {
-  width: min(1480px, 96%);
+/* Sub-descriptions beneath Enter button */
+.canva-sub-descriptions {
+  max-width: 580px;
   margin: 0 auto;
-  padding: 0 24px;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-}
-
-.cult-bar-col h3 {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--cult-orange);
-  margin-bottom: 8px;
-}
-
-.cult-bar-col a,
-.cult-bar-col p {
-  display: block;
-  color: var(--cult-muted);
-  font-size: 0.82rem;
-  font-weight: 600;
-  text-decoration: none;
-  line-height: 1.7;
-}
-
-.cult-bar-col a:hover {
-  color: #fff;
-}
-
-.cult-ticker {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.cult-ticker strong {
-  color: var(--cult-orange);
+.canva-sub-descriptions p {
+  font-family: 'Abhaya Libre', Georgia, serif;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: #4f5a75;
+  margin: 0;
+}
+
+.sub-desc-1 {
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.sub-desc-2 {
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+/* Single clean dark horizontal line divider above the footer */
+.canva-divider-line {
+  height: 1.5px;
+  background: #1a233d;
+  width: min(840px, 92%);
+  margin: 40px auto 0;
+  opacity: 0.85;
+}
+
+/* 5-Column Home Footer Grid */
+.canva-home-footer-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: clamp(12px, 2vw, 24px);
+  padding: 24px 0 32px;
+  width: 100%;
+  max-width: 1120px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  border-radius: 0;
+  margin: 0 auto;
+}
+
+.footer-grid-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.canva-home-footer-grid h3 {
+  font-family: 'Milonga', cursive;
+  font-weight: 500;
+  font-size: 1.15rem;
+  color: #1a233d;
+  margin: 0 0 12px;
+}
+
+.col-title-link {
+  text-decoration: none;
+  color: inherit;
+  transition: color 0.2s ease;
+}
+
+.col-title-link:hover {
+  color: var(--brand-accent, #d02d14);
+}
+
+/* Symbol inside Column 1 */
+.col-symbol-text {
+  font-family: 'Abhaya Libre', Georgia, serif;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #1a233d;
+}
+
+/* CA Block inside Column 2 */
+.col-ca-container {
+  font-family: 'Abhaya Libre', Georgia, serif;
+  font-weight: 600;
+  font-size: 0.98rem;
+  color: #1a233d;
+  word-break: break-all;
+  cursor: pointer;
+  line-height: 1.4;
+  max-width: 240px;
+  display: inline-block;
+  text-align: center;
+}
+
+.ca-prefix-label {
+  margin-right: 4px;
+  font-weight: 700;
+}
+
+.ca-address-value {
+  opacity: 0.95;
+}
+
+.ca-copied-check {
+  margin-left: 6px;
+  color: #2e7d32;
   font-weight: 800;
 }
 
-.cult-ca {
-  font-size: 0.75rem;
-  opacity: 0.75;
+/* Spacer for Column 3 to remain empty and match */
+.col-empty-spacing {
+  height: 20px;
 }
 
-.cult-join-link {
-  color: var(--cult-orange) !important;
+/* Social icons column 4 */
+.footer-social-icons-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
 }
 
-/* ── Responsive ── */
-@media (max-width: 1100px) {
-  .cult-hero {
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto minmax(0, 1fr);
-    grid-template-areas:
-      'panel-left panel-right'
-      'figure figure';
-    text-align: center;
-    overflow: hidden;
-    align-items: start;
-    padding: 0;
-    gap: 12px;
-  }
-
-  .cult-portal,
-  .cult-panel-left,
-  .cult-panel-right,
-  .cult-hero-center {
-    grid-column: auto;
-    grid-row: auto;
-  }
-
-  .cult-portal {
-    grid-area: figure;
-    position: absolute;
-    left: 50%;
-    top: 44%;
-    transform: translate(-50%, -50%);
-    z-index: var(--cult-z-portal);
-    width: min(90%, 520px);
-    max-height: none;
-    margin: 0;
-  }
-
-  .cult-panel-left {
-    grid-area: panel-left;
-    align-self: start;
-    justify-self: stretch;
-    transform: none;
-    width: 100%;
-  }
-
-  .cult-panel-right {
-    grid-area: panel-right;
-    align-self: start;
-    justify-self: stretch;
-    transform: none;
-    width: 100%;
-  }
-
-  .cult-panel-left,
-  .cult-panel-right {
-    max-width: none;
-    margin: 0;
-    max-height: min(320px, 36vh);
-    z-index: var(--cult-z-panels);
-  }
-
-  .cult-hero-center {
-    grid-area: figure;
-    order: unset;
-    align-self: end;
-    height: 100%;
-    min-height: 0;
-    z-index: var(--cult-z-figure);
-  }
-
-  .cult-hero-figure {
-    height: 100%;
-    max-height: 100%;
-    max-width: 100%;
-    transform: scale(1.14);
-  }
-
-  .cult-panel-right .cult-explore-btn {
-    margin-left: auto;
-    margin-right: 0;
-  }
+.social-icon-bubble {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
-@media (max-width: 720px) {
-  .home-mode {
-    --cult-nav-h: auto;
-  }
+.social-icon-bubble:hover {
+  transform: scale(1.12);
+  opacity: 0.85;
+}
 
-  .home-mode .site-topbar-inner {
-    height: auto;
-    min-height: 64px;
-    padding: 10px 0;
-  }
+.social-svg-icon {
+  transition: transform 0.15s ease;
+}
 
-  .cult-hero-page {
-    --cult-footer-h: 110px;
-  }
+/* Contact us link column 5 */
+.footer-contact-me-link {
+  font-family: 'Abhaya Libre', Georgia, serif;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #1a233d;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
 
-  .cult-cards {
+.footer-contact-me-link:hover {
+  color: var(--brand-accent, #d02d14);
+}
+
+/* Responsive Overrides */
+@media (max-width: 1000px) {
+  .canva-home-footer-grid {
     grid-template-columns: repeat(3, 1fr);
-    max-width: 100%;
+    gap: 20px;
   }
+}
 
-  .cult-hero {
+@media (max-width: 760px) {
+  .canva-home-footer-grid {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto minmax(0, 1fr);
-    grid-template-areas:
-      'panel-left'
-      'panel-right'
-      'figure';
-  }
-
-  .cult-portal,
-  .cult-panel-left,
-  .cult-panel-right,
-  .cult-hero-center {
-    grid-column: auto;
-    grid-row: auto;
-  }
-
-  .cult-portal {
-    grid-area: figure;
-    z-index: var(--cult-z-portal);
-    top: 48%;
-    width: min(85%, 400px);
-  }
-
-  .cult-panel-left,
-  .cult-panel-right {
-    max-height: min(280px, 32vh);
-    align-self: center;
-    margin: 0 auto;
-    width: min(520px, 100%);
-    transform: none;
-    z-index: var(--cult-z-panels);
-  }
-
-  .cult-hero-center {
-    z-index: var(--cult-z-figure);
-  }
-
-  .cult-hero-bar {
-    padding: 14px 0;
-  }
-
-  .cult-hero-bar-inner {
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    padding: 0 12px;
-  }
-
-  .cult-hero-figure {
-    max-width: 100%;
-    transform: scale(1.1);
-  }
-
-  .home-mode .site-menu {
-    display: none;
+    gap: 16px;
   }
 }
