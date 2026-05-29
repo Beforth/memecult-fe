@@ -278,6 +278,13 @@ export function adminUpdateSiteConfigResourcesPage(id, resourcesPage) {
   });
 }
 
+export function adminUpdateSiteConfigPageBackgrounds(id, formData) {
+  return adminApi(`/admin/site-config/${id}/page-backgrounds/`, {
+    method: 'PATCH',
+    body: formData,
+  });
+}
+
 export function adminActivateSiteConfig(id) {
   return adminApi(`/admin/site-config/${id}/activate/`, {
     method: 'POST',

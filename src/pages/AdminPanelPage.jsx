@@ -27,6 +27,8 @@ import {
   adminUpdateSiteConfigBranding,
   adminUpdateSiteConfigHero,
   adminUpdateSiteConfigHomeBar,
+  adminUpdateSiteConfigResourcesPage,
+  adminUpdateSiteConfigPageBackgrounds,
   adminActivateSiteConfig,
   adminListCustomPages,
   adminCreateCustomPage,
@@ -334,6 +336,16 @@ export default function AdminPanelPage() {
   const [siteHeroCardFiles, setSiteHeroCardFiles] = useState([]);
   const [siteHeroCardClear, setSiteHeroCardClear] = useState([]);
   const [siteHomeBar, setSiteHomeBar] = useState(DEFAULT_HOME_BAR);
+  const [siteResourcesPage, setSiteResourcesPage] = useState({
+    title: '',
+    description: '',
+    description2: '',
+    dex_label: '',
+    left_links: [],
+    right_links: [],
+  });
+  const [sitePageBackgrounds, setSitePageBackgrounds] = useState({});
+  const [sitePageBgFiles, setSitePageBgFiles] = useState({});
   const [siteSection, setSiteSection] = useState(siteSectionParam || 'navbar');
   const currentSiteConfigId = Number(siteConfigIdParam || siteConfigId || 0) || null;
   const [customPages, setCustomPages] = useState([]);
@@ -647,6 +659,14 @@ export default function AdminPanelPage() {
       setClearIntroVideo(false);
       const hero = row.hero_content || {};
       setSiteHeroContent({
+        title_prefix: hero.title_prefix || DEFAULT_HERO_CONTENT.title_prefix,
+        title_cursive: hero.title_cursive || DEFAULT_HERO_CONTENT.title_cursive,
+        title_suffix: hero.title_suffix || DEFAULT_HERO_CONTENT.title_suffix,
+        enter_label: hero.enter_label || DEFAULT_HERO_CONTENT.enter_label,
+        enter_path: hero.enter_path || DEFAULT_HERO_CONTENT.enter_path,
+        desc_1: hero.desc_1 || DEFAULT_HERO_CONTENT.desc_1,
+        desc_2: hero.desc_2 || DEFAULT_HERO_CONTENT.desc_2,
+
         cards_heading: hero.cards_heading || DEFAULT_HERO_CONTENT.cards_heading,
         cards_subheading: hero.cards_subheading || DEFAULT_HERO_CONTENT.cards_subheading,
         explore_label: hero.explore_label || DEFAULT_HERO_CONTENT.explore_label,
@@ -665,12 +685,39 @@ export default function AdminPanelPage() {
       setSiteHeroCardFiles([]);
       setSiteHeroCardClear([]);
       setSiteHomeBar(cloneHomeBarForEditor(row.home_bar));
+      const rp = row.resources_page || {};
+      setSiteResourcesPage({
+        title: rp.title || '',
+        description: rp.description || '',
+        description2: rp.description2 || '',
+        dex_label: rp.dex_label || '',
+        left_links: Array.isArray(rp.left_links) ? rp.left_links.map(l => ({
+          label: l?.label || '',
+          path: l?.path || '',
+          external: Boolean(l?.external)
+        })) : [],
+        right_links: Array.isArray(rp.right_links) ? rp.right_links.map(l => ({
+          label: l?.label || '',
+          path: l?.path || '',
+          external: Boolean(l?.external)
+        })) : [],
+      });
+      setSitePageBackgrounds(row.page_backgrounds || {});
+      setSitePageBgFiles({});
       return;
     }
     setSiteConfigId(null);
     setSiteConfigName('');
     setSiteNavItems(cloneNavItemsForEditor([]));
     setSiteFooterSections([]);
+    setSiteResourcesPage({
+      title: '',
+      description: '',
+      description2: '',
+      dex_label: '',
+      left_links: [],
+      right_links: [],
+    });
     setSiteFooterCta({
       title: '',
       description: '',
@@ -704,6 +751,8 @@ export default function AdminPanelPage() {
     setSiteHeroCardFiles([]);
     setSiteHeroCardClear([]);
     setSiteHomeBar(cloneHomeBarForEditor(null));
+    setSitePageBackgrounds({});
+    setSitePageBgFiles({});
   }
 
   function updateHeroField(field, value) {
@@ -934,6 +983,87 @@ export default function AdminPanelPage() {
     if (!currentSiteConfigId) return;
     await adminUpdateSiteConfig(currentSiteConfigId, { site_theme: siteTheme });
     await loadSiteConfig(currentSiteConfigId);
+  }
+
+  async function saveResourcesPageOnly() {
+    if (!currentSiteConfigId) return;
+    await adminUpdateSiteConfigResourcesPage(currentSiteConfigId, siteResourcesPage);
+    await loadSiteConfig(currentSiteConfigId);
+  }
+
+  function updateResourcesField(field, value) {
+    setSiteResourcesPage((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function addResourcesLink(side) {
+    setSiteResourcesPage((prev) => ({
+      ...prev,
+      [side]: [...(prev[side] || []), { label: '', path: '', external: false }],
+    }));
+  }
+
+  function updateResourcesLink(side, index, field, value) {
+    setSiteResourcesPage((prev) => ({
+      ...prev,
+      [side]: (prev[side] || []).map((link, idx) =>
+        idx === index ? { ...link, [field]: value } : link
+      ),
+    }));
+  }
+
+  function removeResourcesLink(side, index) {
+    setSiteResourcesPage((prev) => ({
+      ...prev,
+      [side]: (prev[side] || []).filter((_, idx) => idx !== index),
+    }));
+  }
+
+  async function savePageBackgroundsOnly() {
+    if (!currentSiteConfigId) return;
+    const fd = new FormData();
+    fd.append('page_backgrounds', JSON.stringify(sitePageBackgrounds));
+    Object.entries(sitePageBgFiles).forEach(([pageKey, file]) => {
+      if (file) {
+        fd.append(`bg_${pageKey}`, file);
+      }
+    });
+    const clears = [];
+    Object.entries(sitePageBackgrounds).forEach(([pageKey, settings]) => {
+      if (!settings?.image && !sitePageBgFiles[pageKey]) {
+        clears.push(pageKey);
+      }
+    });
+    if (clears.length) {
+      fd.append('clear_backgrounds', JSON.stringify(clears));
+    }
+    await adminUpdateSiteConfigPageBackgrounds(currentSiteConfigId, fd);
+    setSitePageBgFiles({});
+    await loadSiteConfig(currentSiteConfigId);
+  }
+
+  function updatePageBgField(pageKey, field, value) {
+    setSitePageBackgrounds((prev) => ({
+      ...prev,
+      [pageKey]: {
+        ...(prev[pageKey] || { image: '', blur: 18, overlay_opacity: 0.92 }),
+        [field]: value,
+      },
+    }));
+  }
+
+  function handlePageBgFile(pageKey, file) {
+    setSitePageBgFiles((prev) => ({
+      ...prev,
+      [pageKey]: file,
+    }));
+  }
+
+  function clearPageBgImage(pageKey) {
+    updatePageBgField(pageKey, 'image', '');
+    setSitePageBgFiles((prev) => ({
+      ...prev,
+      [pageKey]: null,
+    }));
   }
 
   async function loadCustomPages() {
@@ -1486,8 +1616,10 @@ export default function AdminPanelPage() {
                   <button className={`admin-cms-nav-item ${siteSection === 'navbar' ? 'active' : ''}`} onClick={() => openSiteConfig(siteConfigIdParam, 'navbar')}>Navbar</button>
                   <button className={`admin-cms-nav-item ${siteSection === 'footer' ? 'active' : ''}`} onClick={() => openSiteConfig(siteConfigIdParam, 'footer')}>Footer Links</button>
                   <button className={`admin-cms-nav-item ${siteSection === 'cta' ? 'active' : ''}`} onClick={() => openSiteConfig(siteConfigIdParam, 'cta')}>Footer CTA</button>
+                  <button className={`admin-cms-nav-item ${siteSection === 'resources' ? 'active' : ''}`} onClick={() => openSiteConfig(siteConfigIdParam, 'resources')}>Resources Page</button>
                   <button className={`admin-cms-nav-item ${siteSection === 'loader' ? 'active' : ''}`} onClick={() => openSiteConfig(siteConfigIdParam, 'loader')}>Loader</button>
                   <button className={`admin-cms-nav-item ${siteSection === 'theme' ? 'active' : ''}`} onClick={() => openSiteConfig(siteConfigIdParam, 'theme')}>Theme</button>
+                  <button className={`admin-cms-nav-item ${siteSection === 'backgrounds' ? 'active' : ''}`} onClick={() => openSiteConfig(siteConfigIdParam, 'backgrounds')}>Backgrounds & Blur</button>
                   <button className={`admin-cms-nav-item ${siteSection === 'pages' ? 'active' : ''}`} onClick={() => openSiteConfig(siteConfigIdParam, 'pages')}>Custom Pages</button>
                   <button className="admin-cms-nav-item" onClick={() => setSearchParams({ tab: 'site' })}>← Back to Config List</button>
                 </aside>
@@ -1548,27 +1680,60 @@ export default function AdminPanelPage() {
                       </p>
                       <div className="admin-cms-list">
                         <div className="admin-cms-section">
-                          <h3 className="admin-subhead">Headline (left panel)</h3>
+                          <h3 className="admin-subhead">Headline (Home / About Page)</h3>
                           <div className="admin-cms-item">
                             <input
-                              value={siteHeroContent.headline_prefix || ''}
-                              onChange={(e) => updateHeroField('headline_prefix', e.target.value)}
-                              placeholder="Headline prefix"
+                              value={siteHeroContent.title_prefix || ''}
+                              onChange={(e) => updateHeroField('title_prefix', e.target.value)}
+                              placeholder="Title Prefix (e.g. The first ever)"
                             />
                             <input
-                              value={siteHeroContent.headline_accent || ''}
-                              onChange={(e) => updateHeroField('headline_accent', e.target.value)}
-                              placeholder="Accent text (orange)"
+                              value={siteHeroContent.title_cursive || ''}
+                              onChange={(e) => updateHeroField('title_cursive', e.target.value)}
+                              placeholder="Title Cursive (e.g. futarchy)"
                             />
                             <span />
                           </div>
-                          <textarea
-                            className="admin-textarea"
-                            rows={4}
-                            value={siteHeroContent.description || ''}
-                            onChange={(e) => updateHeroField('description', e.target.value)}
-                            placeholder="Description paragraph"
-                          />
+                          <div className="admin-cms-item">
+                            <textarea
+                              className="admin-textarea"
+                              rows={2}
+                              value={siteHeroContent.title_suffix || ''}
+                              onChange={(e) => updateHeroField('title_suffix', e.target.value)}
+                              placeholder="Title Suffix (e.g. governed\nmeme coin)"
+                            />
+                          </div>
+                          <div className="admin-cms-item">
+                            <input
+                              value={siteHeroContent.enter_label || ''}
+                              onChange={(e) => updateHeroField('enter_label', e.target.value)}
+                              placeholder="Action Button Label (e.g. Enter the cult)"
+                            />
+                            <input
+                              value={siteHeroContent.enter_path || ''}
+                              onChange={(e) => updateHeroField('enter_path', e.target.value)}
+                              placeholder="Action Button Path (e.g. /editor)"
+                            />
+                            <span />
+                          </div>
+                          <div className="admin-cms-item">
+                            <textarea
+                              className="admin-textarea"
+                              rows={2}
+                              value={siteHeroContent.desc_1 || ''}
+                              onChange={(e) => updateHeroField('desc_1', e.target.value)}
+                              placeholder="Description 1"
+                            />
+                          </div>
+                          <div className="admin-cms-item">
+                            <textarea
+                              className="admin-textarea"
+                              rows={2}
+                              value={siteHeroContent.desc_2 || ''}
+                              onChange={(e) => updateHeroField('desc_2', e.target.value)}
+                              placeholder="Description 2"
+                            />
+                          </div>
                         </div>
                         <div className="admin-cms-section">
                           <h3 className="admin-subhead">Cards panel (right)</h3>
@@ -2024,6 +2189,214 @@ export default function AdminPanelPage() {
                         </div>
                       </div>
                       <div className="admin-modal-actions"><button className="btn btn-lime" onClick={() => run(saveThemeOnly)}>Save Theme</button></div>
+                    </>
+                  ) : null}
+
+                  {siteSection === 'resources' ? (
+                    <>
+                      <div className="admin-panel-head">
+                        <h2>Resources Page</h2>
+                      </div>
+                      <p className="admin-muted">
+                        Configure the title, description, and link lists shown on the resources/assets page.
+                      </p>
+                      <div className="admin-cms-list">
+                        <div className="admin-cms-section">
+                          <h3 className="admin-subhead">Page Info</h3>
+                          <div className="admin-cms-item">
+                            <input
+                              value={siteResourcesPage.title || ''}
+                              onChange={(e) => updateResourcesField('title', e.target.value)}
+                              placeholder="Page Title (e.g. Assets & Resource)"
+                            />
+                            <input
+                              value={siteResourcesPage.dex_label || ''}
+                              onChange={(e) => updateResourcesField('dex_label', e.target.value)}
+                              placeholder="DEX Label (e.g. $FUTARDIO\nDEXSCREENER)"
+                            />
+                            <span />
+                          </div>
+                          <div className="admin-cms-item">
+                            <textarea
+                              className="admin-textarea"
+                              rows={2}
+                              value={siteResourcesPage.description || ''}
+                              onChange={(e) => updateResourcesField('description', e.target.value)}
+                              placeholder="Description Paragraph 1"
+                            />
+                          </div>
+                          <div className="admin-cms-item">
+                            <textarea
+                              className="admin-textarea"
+                              rows={2}
+                              value={siteResourcesPage.description2 || ''}
+                              onChange={(e) => updateResourcesField('description2', e.target.value)}
+                              placeholder="Description Paragraph 2"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Left Links Builder */}
+                        <div className="admin-cms-section">
+                          <div className="admin-cms-section-head">
+                            <h3>Left Link Column</h3>
+                            <button type="button" className="btn btn-outline" onClick={() => addResourcesLink('left_links')}>+ Add Left Link</button>
+                          </div>
+                          <div className="admin-cms-list">
+                            {(siteResourcesPage.left_links || []).map((link, idx) => (
+                              <div key={`res-left-link-${idx}`} className="admin-cms-item">
+                                <input
+                                  value={link.label || ''}
+                                  onChange={(e) => updateResourcesLink('left_links', idx, 'label', e.target.value)}
+                                  placeholder="Link Label (use --- for spacer)"
+                                />
+                                <input
+                                  value={link.path || ''}
+                                  onChange={(e) => updateResourcesLink('left_links', idx, 'path', e.target.value)}
+                                  placeholder="Path or URL (e.g. #logo or https://...)"
+                                />
+                                <label className="admin-checkline">
+                                  <input
+                                    type="checkbox"
+                                    checked={Boolean(link.external)}
+                                    onChange={(e) => updateResourcesLink('left_links', idx, 'external', e.target.checked)}
+                                  />
+                                  <span>External</span>
+                                </label>
+                                <button type="button" className="btn btn-outline" onClick={() => removeResourcesLink('left_links', idx)}>Remove</button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Right Links Builder */}
+                        <div className="admin-cms-section">
+                          <div className="admin-cms-section-head">
+                            <h3>Right Link Column</h3>
+                            <button type="button" className="btn btn-outline" onClick={() => addResourcesLink('right_links')}>+ Add Right Link</button>
+                          </div>
+                          <div className="admin-cms-list">
+                            {(siteResourcesPage.right_links || []).map((link, idx) => (
+                              <div key={`res-right-link-${idx}`} className="admin-cms-item">
+                                <input
+                                  value={link.label || ''}
+                                  onChange={(e) => updateResourcesLink('right_links', idx, 'label', e.target.value)}
+                                  placeholder="Link Label (use --- for spacer)"
+                                />
+                                <input
+                                  value={link.path || ''}
+                                  onChange={(e) => updateResourcesLink('right_links', idx, 'path', e.target.value)}
+                                  placeholder="Path or URL (e.g. https://...)"
+                                />
+                                <label className="admin-checkline">
+                                  <input
+                                    type="checkbox"
+                                    checked={Boolean(link.external)}
+                                    onChange={(e) => updateResourcesLink('right_links', idx, 'external', e.target.checked)}
+                                  />
+                                  <span>External</span>
+                                </label>
+                                <button type="button" className="btn btn-outline" onClick={() => removeResourcesLink('right_links', idx)}>Remove</button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                      </div>
+                      <div className="admin-modal-actions">
+                        <button className="btn btn-lime" onClick={() => run(saveResourcesPageOnly)}>Save Resources Page</button>
+                      </div>
+                    </>
+                  ) : null}
+
+                  {siteSection === 'backgrounds' ? (
+                    <>
+                      <div className="admin-panel-head">
+                        <h2>Backgrounds & Blur Settings</h2>
+                      </div>
+                      <p className="admin-muted">
+                        Upload custom background images and configure blur amounts and color overlay opacity for each page.
+                      </p>
+                      <div className="admin-cms-list">
+                        {['home', 'about', 'roadmap', 'memes', 'assets', 'editor', 'support', 'privacy', 'custom'].map((pageKey) => {
+                          const settings = sitePageBackgrounds[pageKey] || { image: '/images/bg.png', blur: 18, overlay_opacity: 0.92 };
+                          const file = sitePageBgFiles[pageKey];
+                          const imageSrc = file ? URL.createObjectURL(file) : settings.image;
+
+                          return (
+                            <div key={`bg-page-${pageKey}`} className="admin-cms-section">
+                              <div className="admin-cms-section-head">
+                                <strong style={{ textTransform: 'capitalize' }}>{pageKey} Page</strong>
+                              </div>
+                              
+                              <div className="admin-cms-item">
+                                <label className="admin-field">
+                                  <span>Blur (px)</span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    value={settings.blur !== undefined ? settings.blur : 18}
+                                    onChange={(e) => updatePageBgField(pageKey, 'blur', Number(e.target.value))}
+                                  />
+                                </label>
+                                <label className="admin-field">
+                                  <span>Overlay Opacity (0.00 - 1.00)</span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    max="1"
+                                    step="0.05"
+                                    value={settings.overlay_opacity !== undefined ? settings.overlay_opacity : 0.92}
+                                    onChange={(e) => updatePageBgField(pageKey, 'overlay_opacity', Number(e.target.value))}
+                                  />
+                                </label>
+                                <span />
+                              </div>
+
+                              <label className="admin-file-upload" style={{ marginTop: 8 }}>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => handlePageBgFile(pageKey, e.target.files?.[0] || null)}
+                                />
+                                <span className="admin-file-upload-trigger">
+                                  <UploadIcon />
+                                  <b>{file ? 'Change image' : 'Upload custom background'}</b>
+                                </span>
+                                <small>{file ? file.name : 'PNG, JPG, WEBP supported (leave blank to use fallback)'}</small>
+                              </label>
+
+                              {(file || settings.image) ? (
+                                <div className="admin-upload-preview" style={{ marginTop: 8 }}>
+                                  <img
+                                    src={imageSrc || '/images/bg.png'}
+                                    alt={`${pageKey} background preview`}
+                                    style={{
+                                      filter: `blur(${settings.blur}px)`,
+                                      transition: 'filter 0.3s ease',
+                                      maxHeight: 120,
+                                      objectFit: 'cover',
+                                      width: '100%',
+                                    }}
+                                  />
+                                  <button
+                                    className="btn btn-outline"
+                                    type="button"
+                                    onClick={() => clearPageBgImage(pageKey)}
+                                    style={{ marginTop: 8 }}
+                                  >
+                                    Use Default / Remove custom background
+                                  </button>
+                                </div>
+                              ) : null}
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="admin-modal-actions">
+                        <button className="btn btn-lime" onClick={() => run(savePageBackgroundsOnly)}>Save Page Backgrounds</button>
+                      </div>
                     </>
                   ) : null}
                 </div>
