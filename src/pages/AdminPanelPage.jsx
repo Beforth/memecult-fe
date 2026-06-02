@@ -366,6 +366,7 @@ export default function AdminPanelPage() {
   const [loaderBgUrl, setLoaderBgUrl] = useState('');
   const [loaderBgHex, setLoaderBgHex] = useState('#E3F7FD');
   const [loaderFrequencyHours, setLoaderFrequencyHours] = useState(24);
+  const [loaderText, setLoaderText] = useState('loading..');
   const [siteLogoFile, setSiteLogoFile] = useState(null);
   const [footerLogoFile, setFooterLogoFile] = useState(null);
   const [siteLogoUrl, setSiteLogoUrl] = useState('');
@@ -691,6 +692,7 @@ export default function AdminPanelPage() {
       setSiteLogoUrl(normalizeMediaUrl(row.site_logo) || '');
       setFooterLogoUrl(normalizeMediaUrl(row.footer_logo) || '');
       setLoaderFrequencyHours(Number(row.loader_frequency_hours || 24));
+      setLoaderText(row.loader_text || 'loading..');
       setSiteTheme({
         primary: row.site_theme?.primary || '#202063',
         accent: row.site_theme?.accent || '#D02D14',
@@ -794,6 +796,7 @@ export default function AdminPanelPage() {
     setSiteLogoUrl('');
     setFooterLogoUrl('');
     setLoaderFrequencyHours(24);
+    setLoaderText('loading..');
     setSiteTheme({
       primary: '#202063',
       accent: '#D02D14',
@@ -1051,6 +1054,7 @@ export default function AdminPanelPage() {
     fd.append('loader_background_type', loaderBgType);
     fd.append('loader_background_color', loaderBgColor);
     fd.append('loader_frequency_hours', String(Math.max(1, Number(loaderFrequencyHours || 24))));
+    fd.append('loader_text', loaderText);
     if (loaderGifFile) fd.append('loader_gif', loaderGifFile);
     if (loaderBgFile) fd.append('loader_background_media', loaderBgFile);
     if (introVideoFile) fd.append('intro_video', introVideoFile);
@@ -2361,6 +2365,16 @@ export default function AdminPanelPage() {
                             min="1"
                             value={loaderFrequencyHours}
                             onChange={(e) => setLoaderFrequencyHours(e.target.value)}
+                          />
+                          <span />
+                          <span />
+                        </div>
+                        <div className="admin-cms-item">
+                          <label>Loader Text</label>
+                          <input
+                            value={loaderText}
+                            onChange={(e) => setLoaderText(e.target.value)}
+                            placeholder="loading.."
                           />
                           <span />
                           <span />

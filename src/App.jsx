@@ -29,8 +29,8 @@ export default function App() {
   /** checking → loader | video | idle */
   const [bootPhase, setBootPhase] = useState('checking');
   const [canEnterSite, setCanEnterSite] = useState(false);
-  const [loaderTextIndex, setLoaderTextIndex] = useState(0);
-  const [loaderGifSrc, setLoaderGifSrc] = useState('/images/loading-transparent.gif');
+  const [loaderText, setLoaderText] = useState('loading..');
+  const [loaderGifSrc, setLoaderGifSrc] = useState('/images/loading-transparent-compressed.gif');
   const [loaderBgType, setLoaderBgType] = useState('color');
   const [loaderBgColor, setLoaderBgColor] = useState('#E3F7FD');
   const [loaderBgMedia, setLoaderBgMedia] = useState('');
@@ -146,6 +146,7 @@ export default function App() {
         if (cfg?.loader_background_type) setLoaderBgType(cfg.loader_background_type);
         if (cfg?.loader_background_color) setLoaderBgColor(cfg.loader_background_color);
         if (cfg?.loader_background_media) setLoaderBgMedia(normalize(cfg.loader_background_media));
+        if (cfg?.loader_text) setLoaderText(cfg.loader_text);
         const introUrl = cfg?.intro_video ? normalize(cfg.intro_video) : INTRO_VIDEO_FALLBACK;
         setIntroVideoSrc(introUrl);
         if (cfg?.page_backgrounds) {
@@ -178,19 +179,7 @@ export default function App() {
     };
   }, [isAdmin, isAuthPage]);
 
-  useEffect(() => {
-    if (canEnterSite) return;
-    const lines = [
-      'Loading...',
-      'Getting things ready for you...',
-      'Warming up meme engine...',
-      'Almost there...',
-    ];
-    const timer = window.setInterval(() => {
-      setLoaderTextIndex((prev) => (prev + 1) % lines.length);
-    }, 900);
-    return () => window.clearInterval(timer);
-  }, [canEnterSite]);
+
 
   function finishBootSequence() {
     localStorage.setItem(BOOT_LAST_SEEN_KEY, String(Date.now()));
@@ -223,12 +212,7 @@ export default function App() {
     return undefined;
   }, [bootPhase]);
 
-  const loaderLines = [
-    'Loading...',
-    'Getting things ready for you...',
-    'Warming up meme engine...',
-    'Almost there...',
-  ];
+
 
   const bootChecking = bootPhase === 'checking';
   const loaderVisible = bootPhase === 'loader';
@@ -283,10 +267,10 @@ export default function App() {
                 }
           }
         >
-          <img src={loaderGifSrc} alt="Loading MemeCult" className="boot-loader-gif" />
+          <img src={loaderGifSrc} alt="Loading" className="boot-loader-gif" />
           <div className="boot-loader-actions">
             <p className="boot-loader-text">
-              {canEnterSite ? 'Touch anywhere to enter' : loaderLines[loaderTextIndex]}
+              {canEnterSite ? 'Touch anywhere to enter' : loaderText}
             </p>
           </div>
         </div>

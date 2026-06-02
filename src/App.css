@@ -134,7 +134,7 @@
 .intro-video-actions {
   position: absolute;
   right: clamp(16px, 3vw, 28px);
-  bottom: clamp(16px, 3vh, 28px);
+  top: clamp(16px, 3vh, 28px);
   z-index: 2;
 }
 
