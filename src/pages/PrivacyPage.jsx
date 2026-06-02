@@ -3,6 +3,7 @@ import { getPublicContentPage } from '../api/client';
 
 export default function PrivacyPage() {
   const [title, setTitle] = useState('Privacy');
+  const [subtitle, setSubtitle] = useState('How MemeCult collects and uses data.');
   const [body, setBody] = useState('');
 
   useEffect(() => {
@@ -11,6 +12,7 @@ export default function PrivacyPage() {
       .then((data) => {
         if (!live) return;
         setTitle(data.title || 'Privacy');
+        setSubtitle(data.subtitle || 'How MemeCult collects and uses data.');
         setBody(data.body || '');
       })
       .catch(() => {});
@@ -23,7 +25,7 @@ export default function PrivacyPage() {
     <section className="page-shell cult-page-shell">
       <header className="sec-head left cult-page-head">
         <h2>{title}</h2>
-        <p>How MemeCult collects and uses data.</p>
+        <p>{subtitle}</p>
       </header>
 
       <div className="neo-panel cult-glass-panel">

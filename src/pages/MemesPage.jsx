@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { listMemes } from '../api/client';
+import { listMemes, getPublicSiteConfig } from '../api/client';
 import Footer from '../components/Footer';
+import { DEFAULT_SITE_LOGO, resolveSiteLogo } from '../utils/siteMedia';
 import './StaticCultPage.css';
 import './HomePage.css';
 
@@ -10,11 +11,33 @@ export default function MemesPage() {
   const [totalPages, setTotalPages] = useState(10);
   const [busy, setBusy] = useState(false);
   const [selectedMeme, setSelectedMeme] = useState(null);
+  const [siteLogoSrc, setSiteLogoSrc] = useState('/images/logo.png');
+  const [galleryTitle, setGalleryTitle] = useState('Futardio Gallery');
+  const [gallerySubtitle, setGallerySubtitle] = useState('Memes and Clips');
+  const [galleryBottomDesc, setGalleryBottomDesc] = useState(
+    'Futardio Cult is a community driven meme coin , built on futarchy principles. Unruggable by holly book of metaDAO.'
+  );
 
   // Load memes from real backend or fall back to high-density mockup data
   useEffect(() => {
     loadMemes(currentPage);
   }, [currentPage]);
+
+  useEffect(() => {
+    getPublicSiteConfig()
+      .then((cfg) => {
+        setSiteLogoSrc(resolveSiteLogo(cfg));
+        if (cfg.gallery_settings) {
+          setGalleryTitle(cfg.gallery_settings.title || 'Futardio Gallery');
+          setGallerySubtitle(cfg.gallery_settings.subtitle || 'Memes and Clips');
+          setGalleryBottomDesc(
+            cfg.gallery_settings.bottom_description ||
+              'Futardio Cult is a community driven meme coin , built on futarchy principles. Unruggable by holly book of metaDAO.'
+          );
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const loadMemes = async (page) => {
     setBusy(true);
@@ -80,15 +103,15 @@ export default function MemesPage() {
       <div className="canva-home-content" style={{ gap: '16px', position: 'relative' }}>
         {/* Centered large watermark logo behind the text & grid */}
         <div className="canva-hero-watermark-logo" aria-hidden="true" style={{ position: 'absolute', top: '45%', left: '50%', transform: 'translate(-50%, -50%)', opacity: 0.13, zIndex: 0 }}>
-          <img src="/images/logo.png" alt="" />
+          <img src={siteLogoSrc} alt="" />
         </div>
 
         <header className="gallery-header" style={{ textAlign: 'center', marginTop: '24px', position: 'relative', zIndex: 1 }}>
           <h1 className="canva-main-title" style={{ fontSize: '3.6rem', marginBottom: '8px' }}>
-            Futardio Gallery
+            {galleryTitle}
           </h1>
           <p className="gallery-subtitle-serif" style={{ fontFamily: "'Abhaya Libre', Georgia, serif", fontSize: '1.45rem', fontWeight: 600, color: '#1a233d', fontStyle: 'italic', margin: '0 0 24px' }}>
-            Memes and Clips
+            {gallerySubtitle}
           </p>
         </header>
 
@@ -155,7 +178,7 @@ export default function MemesPage() {
 
         {/* Footer landing description text block */}
         <p className="canva-gallery-bottom-desc">
-          Futardio Cult is a community driven meme coin , built on futarchy principles. Unruggable by holly book of metaDAO.
+          {galleryBottomDesc}
         </p>
 
         {/* Modal popup sub-window for full image + download button */}

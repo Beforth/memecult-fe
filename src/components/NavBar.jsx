@@ -79,6 +79,7 @@ function NavDropdown({ item, index, openIndex, setOpenIndex }) {
 export default function NavBar() {
   const [userName, setUserName] = useState(localStorage.getItem('user_name') || '');
   const [siteLogoSrc, setSiteLogoSrc] = useState(DEFAULT_SITE_LOGO);
+  const [siteName, setSiteName] = useState('FUTARDIO CULT');
   const [navItems, setNavItems] = useState(DEFAULT_NAV_ITEMS);
   const [openDropdown, setOpenDropdown] = useState(null);
   const navRef = useRef(null);
@@ -101,6 +102,9 @@ export default function NavBar() {
       .then((cfg) => {
         if (!live) return;
         setSiteLogoSrc(resolveSiteLogo(cfg));
+        if (cfg.site_name) {
+          setSiteName(cfg.site_name);
+        }
         const parsed = normalizeNavItems(cfg.nav_items);
         if (parsed.length) {
           setNavItems(parsed);
@@ -139,7 +143,7 @@ export default function NavBar() {
             <img src={siteLogoSrc} alt="" className="brand-logo-img" />
           </div>
           <div className="brand-name-pill">
-            <span>FUTARDIO CULT</span>
+            <span>{siteName}</span>
           </div>
         </Link>
 

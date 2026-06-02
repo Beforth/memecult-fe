@@ -39,6 +39,48 @@ import {
 import { DEFAULT_HERO_CONTENT } from '../utils/heroContent';
 import { cloneHomeBarForEditor, DEFAULT_HOME_BAR } from '../utils/homeBar';
 import { cloneNavItemsForEditor, DEFAULT_NAV_ITEMS } from '../utils/navItems';
+
+const DEFAULT_FOOTER_SECTIONS = [
+  {
+    title: 'Futardio Gallery',
+    links: [{ label: '$FUTARDIO', path: '/memes', external: false }]
+  },
+  {
+    title: 'Futardio Cards',
+    links: [{ label: 'Cbjr1Nvcay3QWDriyRKtokJ7V4PMnesGxeK8z7Zmeta', path: '/futardio-card', external: false }]
+  },
+  {
+    title: 'Meme Lab',
+    links: [{ label: 'Meme Lab', path: '/editor', external: false }]
+  },
+  {
+    title: 'Resources',
+    links: [
+      { label: 'Twitter', path: 'https://x.com/Futardiocult3', external: true },
+      { label: 'Telegram Community', path: 'https://t.me/FUTARDIOCULT', external: true }
+    ]
+  },
+  {
+    title: 'About us',
+    links: [{ label: 'Contact us', path: 'https://t.me/FUTARDIOCULT', external: true }]
+  }
+];
+
+const DEFAULT_GALLERY_SETTINGS = {
+  title: 'Futardio Gallery',
+  subtitle: 'Memes and Clips',
+  bottom_description: 'Futardio Cult is a community driven meme coin , built on futarchy principles. Unruggable by holly book of metaDAO.',
+};
+
+const DEFAULT_ROADMAP_SETTINGS = {
+  title: 'Futardio',
+  cursive_subtitle: 'roadmap',
+  status_title: 'COMING SOON',
+  status_subtext: 'PROPULSION STAGE ACTIVE',
+  description: 'We are designing an artistic, organic "Tree of Life" roadmap system with branching milestones.',
+  description2: 'Once launched, each branch will grow dynamically as community-driven goals are achieved.',
+};
+
 import { DEFAULT_SITE_LOGO, normalizeMediaUrl, resolveSiteLogo } from '../utils/siteMedia';
 
 const NAV = [
@@ -294,7 +336,11 @@ export default function AdminPanelPage() {
 
   const [contentRows, setContentRows] = useState([]);
   const [contentTitle, setContentTitle] = useState('');
+  const [contentSubtitle, setContentSubtitle] = useState('');
   const [contentBody, setContentBody] = useState('');
+  const [siteName, setSiteName] = useState('FUTARDIO CULT');
+  const [gallerySettings, setGallerySettings] = useState(DEFAULT_GALLERY_SETTINGS);
+  const [roadmapSettings, setRoadmapSettings] = useState(DEFAULT_ROADMAP_SETTINGS);
   const [siteConfigId, setSiteConfigId] = useState(null);
   const [siteConfigRows, setSiteConfigRows] = useState([]);
   const [selectedSiteConfigs, setSelectedSiteConfigs] = useState([]);
@@ -480,6 +526,7 @@ export default function AdminPanelPage() {
     const key = kind === 'privacy' ? 'privacy' : 'support';
     const row = contentRows.find((r) => r.page_type === key);
     setContentTitle(row?.title || '');
+    setContentSubtitle(row?.subtitle || '');
     setContentBody(row?.body || '');
   }
 
@@ -601,9 +648,9 @@ export default function AdminPanelPage() {
     const key = tabKey === 'privacy' ? 'privacy' : 'support';
     const row = contentRows.find((r) => r.page_type === key);
     if (row) {
-      await adminUpdateContentPage(row.id, { title: contentTitle, body: contentBody, is_published: true });
+      await adminUpdateContentPage(row.id, { title: contentTitle, subtitle: contentSubtitle, body: contentBody, is_published: true });
     } else {
-      await adminCreateContentPage({ page_type: key, title: contentTitle, body: contentBody, is_published: true });
+      await adminCreateContentPage({ page_type: key, title: contentTitle, subtitle: contentSubtitle, body: contentBody, is_published: true });
     }
     await loadContentPages();
   }
@@ -704,6 +751,20 @@ export default function AdminPanelPage() {
       });
       setSitePageBackgrounds(row.page_backgrounds || {});
       setSitePageBgFiles({});
+      setSiteName(row.site_name || 'FUTARDIO CULT');
+      setGallerySettings({
+        title: row.gallery_settings?.title || DEFAULT_GALLERY_SETTINGS.title,
+        subtitle: row.gallery_settings?.subtitle || DEFAULT_GALLERY_SETTINGS.subtitle,
+        bottom_description: row.gallery_settings?.bottom_description || DEFAULT_GALLERY_SETTINGS.bottom_description,
+      });
+      setRoadmapSettings({
+        title: row.roadmap_settings?.title || DEFAULT_ROADMAP_SETTINGS.title,
+        cursive_subtitle: row.roadmap_settings?.cursive_subtitle || DEFAULT_ROADMAP_SETTINGS.cursive_subtitle,
+        status_title: row.roadmap_settings?.status_title || DEFAULT_ROADMAP_SETTINGS.status_title,
+        status_subtext: row.roadmap_settings?.status_subtext || DEFAULT_ROADMAP_SETTINGS.status_subtext,
+        description: row.roadmap_settings?.description || DEFAULT_ROADMAP_SETTINGS.description,
+        description2: row.roadmap_settings?.description2 || DEFAULT_ROADMAP_SETTINGS.description2,
+      });
       return;
     }
     setSiteConfigId(null);
@@ -753,6 +814,9 @@ export default function AdminPanelPage() {
     setSiteHomeBar(cloneHomeBarForEditor(null));
     setSitePageBackgrounds({});
     setSitePageBgFiles({});
+    setSiteName('FUTARDIO CULT');
+    setGallerySettings(DEFAULT_GALLERY_SETTINGS);
+    setRoadmapSettings(DEFAULT_ROADMAP_SETTINGS);
   }
 
   function updateHeroField(field, value) {
@@ -942,6 +1006,24 @@ export default function AdminPanelPage() {
     if (!name) return;
     await adminUpdateSiteConfig(currentSiteConfigId, { name });
     await Promise.all([loadSiteConfig(currentSiteConfigId), loadSiteConfigList()]);
+  }
+
+  async function saveSiteNameOnly() {
+    if (!currentSiteConfigId) return;
+    await adminUpdateSiteConfig(currentSiteConfigId, { site_name: siteName });
+    await loadSiteConfig(currentSiteConfigId);
+  }
+
+  async function saveGallerySettings() {
+    if (!currentSiteConfigId) return;
+    await adminUpdateSiteConfig(currentSiteConfigId, { gallery_settings: gallerySettings });
+    await loadSiteConfig(currentSiteConfigId);
+  }
+
+  async function saveRoadmapSettings() {
+    if (!currentSiteConfigId) return;
+    await adminUpdateSiteConfig(currentSiteConfigId, { roadmap_settings: roadmapSettings });
+    await loadSiteConfig(currentSiteConfigId);
   }
 
   async function saveNavbarOnly() {
@@ -1489,6 +1571,7 @@ export default function AdminPanelPage() {
             <div className="admin-panel-head"><h2>{tab === 'privacy' ? 'Privacy Policy' : 'Support Page'}</h2></div>
             <div className="admin-content-form">
               <input value={contentTitle} onChange={(e) => setContentTitle(e.target.value)} placeholder="Page title" />
+              <input value={contentSubtitle} onChange={(e) => setContentSubtitle(e.target.value)} placeholder="Page subtitle" style={{ marginTop: '8px', marginBottom: '8px' }} />
               <RichTextEditor value={contentBody} onChange={setContentBody} />
               <button className="btn btn-lime" onClick={() => run(() => saveContent(tab))}>Save</button>
             </div>
@@ -1537,8 +1620,14 @@ export default function AdminPanelPage() {
                           warm: '#FFB02F',
                         },
                         nav_items: DEFAULT_NAV_ITEMS,
-                        footer_sections: [],
-                        footer_cta: {},
+                        footer_sections: DEFAULT_FOOTER_SECTIONS,
+                        footer_cta: {
+                          title: 'Ready to go viral?',
+                          description: 'Join creators making the internet funnier every day.',
+                          button_text: 'Start Creating Now',
+                          button_path: '/editor',
+                          external: false,
+                        },
                         hero_content: DEFAULT_HERO_CONTENT,
                         home_bar: DEFAULT_HOME_BAR,
                         loader_background_type: 'color',
@@ -1617,6 +1706,8 @@ export default function AdminPanelPage() {
                   <button className={`admin-cms-nav-item ${siteSection === 'footer' ? 'active' : ''}`} onClick={() => openSiteConfig(siteConfigIdParam, 'footer')}>Footer Links</button>
                   <button className={`admin-cms-nav-item ${siteSection === 'cta' ? 'active' : ''}`} onClick={() => openSiteConfig(siteConfigIdParam, 'cta')}>Footer CTA</button>
                   <button className={`admin-cms-nav-item ${siteSection === 'resources' ? 'active' : ''}`} onClick={() => openSiteConfig(siteConfigIdParam, 'resources')}>Resources Page</button>
+                  <button className={`admin-cms-nav-item ${siteSection === 'gallery' ? 'active' : ''}`} onClick={() => openSiteConfig(siteConfigIdParam, 'gallery')}>Gallery Page</button>
+                  <button className={`admin-cms-nav-item ${siteSection === 'roadmap' ? 'active' : ''}`} onClick={() => openSiteConfig(siteConfigIdParam, 'roadmap')}>Roadmap Page</button>
                   <button className={`admin-cms-nav-item ${siteSection === 'loader' ? 'active' : ''}`} onClick={() => openSiteConfig(siteConfigIdParam, 'loader')}>Loader</button>
                   <button className={`admin-cms-nav-item ${siteSection === 'theme' ? 'active' : ''}`} onClick={() => openSiteConfig(siteConfigIdParam, 'theme')}>Theme</button>
                   <button className={`admin-cms-nav-item ${siteSection === 'backgrounds' ? 'active' : ''}`} onClick={() => openSiteConfig(siteConfigIdParam, 'backgrounds')}>Backgrounds & Blur</button>
@@ -1661,9 +1752,136 @@ export default function AdminPanelPage() {
                             </div>
                           ) : null}
                         </div>
+                        <div>
+                          <h3 className="admin-subhead">Site Brand Name</h3>
+                          <p className="admin-muted">Site name shown in the navbar, logins, and settings.</p>
+                          <input 
+                            value={siteName} 
+                            onChange={(e) => setSiteName(e.target.value)} 
+                            placeholder="FUTARDIO CULT"
+                            style={{ 
+                              width: '100%', 
+                              padding: '10px', 
+                              backgroundColor: '#161920', 
+                              color: '#fff', 
+                              border: '1px solid #2d3343', 
+                              borderRadius: '6px',
+                              marginBottom: '10px'
+                            }} 
+                          />
+                          <button className="btn btn-outline" onClick={() => run(saveSiteNameOnly)}>Save Brand Name</button>
+                        </div>
                       </div>
                       <div className="admin-modal-actions">
                         <button className="btn btn-lime" onClick={() => run(saveLogoOnly)} disabled={!siteLogoFile && !footerLogoFile}>Save Logos</button>
+                      </div>
+                    </>
+                  ) : null}
+
+                  {siteSection === 'gallery' ? (
+                    <>
+                      <div className="admin-panel-head"><h2>Gallery Page Settings</h2></div>
+                      <p className="admin-muted">Customize the header and descriptions on the Memes/Clips Gallery page.</p>
+                      <div className="admin-cms-list">
+                        <div>
+                          <h3 className="admin-subhead">Gallery Title</h3>
+                          <input 
+                            value={gallerySettings.title} 
+                            onChange={(e) => setGallerySettings(prev => ({ ...prev, title: e.target.value }))} 
+                            placeholder="Futardio Gallery" 
+                            style={{ width: '100%', padding: '10px', backgroundColor: '#161920', color: '#fff', border: '1px solid #2d3343', borderRadius: '6px', marginBottom: '15px' }}
+                          />
+                        </div>
+                        <div>
+                          <h3 className="admin-subhead">Gallery Subtitle</h3>
+                          <input 
+                            value={gallerySettings.subtitle} 
+                            onChange={(e) => setGallerySettings(prev => ({ ...prev, subtitle: e.target.value }))} 
+                            placeholder="Memes and Clips" 
+                            style={{ width: '100%', padding: '10px', backgroundColor: '#161920', color: '#fff', border: '1px solid #2d3343', borderRadius: '6px', marginBottom: '15px' }}
+                          />
+                        </div>
+                        <div>
+                          <h3 className="admin-subhead">Bottom Description</h3>
+                          <textarea 
+                            value={gallerySettings.bottom_description} 
+                            onChange={(e) => setGallerySettings(prev => ({ ...prev, bottom_description: e.target.value }))} 
+                            placeholder="Futardio Cult description..." 
+                            rows={4}
+                            style={{ width: '100%', padding: '10px', backgroundColor: '#161920', color: '#fff', border: '1px solid #2d3343', borderRadius: '6px', marginBottom: '15px', resize: 'vertical' }}
+                          />
+                        </div>
+                      </div>
+                      <div className="admin-modal-actions">
+                        <button className="btn btn-lime" onClick={() => run(saveGallerySettings)}>Save Gallery Settings</button>
+                      </div>
+                    </>
+                  ) : null}
+
+                  {siteSection === 'roadmap' ? (
+                    <>
+                      <div className="admin-panel-head"><h2>Roadmap Page Settings</h2></div>
+                      <p className="admin-muted">Customize the main headers, subtitles, status button, and paragraphs on the Roadmap page.</p>
+                      <div className="admin-cms-list">
+                        <div>
+                          <h3 className="admin-subhead">Roadmap Title</h3>
+                          <input 
+                            value={roadmapSettings.title} 
+                            onChange={(e) => setRoadmapSettings(prev => ({ ...prev, title: e.target.value }))} 
+                            placeholder="Futardio" 
+                            style={{ width: '100%', padding: '10px', backgroundColor: '#161920', color: '#fff', border: '1px solid #2d3343', borderRadius: '6px', marginBottom: '15px' }}
+                          />
+                        </div>
+                        <div>
+                          <h3 className="admin-subhead">Cursive Accent Highlight</h3>
+                          <input 
+                            value={roadmapSettings.cursive_subtitle} 
+                            onChange={(e) => setRoadmapSettings(prev => ({ ...prev, cursive_subtitle: e.target.value }))} 
+                            placeholder="roadmap" 
+                            style={{ width: '100%', padding: '10px', backgroundColor: '#161920', color: '#fff', border: '1px solid #2d3343', borderRadius: '6px', marginBottom: '15px' }}
+                          />
+                        </div>
+                        <div>
+                          <h3 className="admin-subhead">Status Badge Text</h3>
+                          <input 
+                            value={roadmapSettings.status_title} 
+                            onChange={(e) => setRoadmapSettings(prev => ({ ...prev, status_title: e.target.value }))} 
+                            placeholder="COMING SOON" 
+                            style={{ width: '100%', padding: '10px', backgroundColor: '#161920', color: '#fff', border: '1px solid #2d3343', borderRadius: '6px', marginBottom: '15px' }}
+                          />
+                        </div>
+                        <div>
+                          <h3 className="admin-subhead">Status Subtext / Period</h3>
+                          <input 
+                            value={roadmapSettings.status_subtext} 
+                            onChange={(e) => setRoadmapSettings(prev => ({ ...prev, status_subtext: e.target.value }))} 
+                            placeholder="PROPULSION STAGE ACTIVE" 
+                            style={{ width: '100%', padding: '10px', backgroundColor: '#161920', color: '#fff', border: '1px solid #2d3343', borderRadius: '6px', marginBottom: '15px' }}
+                          />
+                        </div>
+                        <div>
+                          <h3 className="admin-subhead">Description Paragraph 1</h3>
+                          <textarea 
+                            value={roadmapSettings.description} 
+                            onChange={(e) => setRoadmapSettings(prev => ({ ...prev, description: e.target.value }))} 
+                            placeholder="Description..." 
+                            rows={3}
+                            style={{ width: '100%', padding: '10px', backgroundColor: '#161920', color: '#fff', border: '1px solid #2d3343', borderRadius: '6px', marginBottom: '15px', resize: 'vertical' }}
+                          />
+                        </div>
+                        <div>
+                          <h3 className="admin-subhead">Description Paragraph 2</h3>
+                          <textarea 
+                            value={roadmapSettings.description2} 
+                            onChange={(e) => setRoadmapSettings(prev => ({ ...prev, description2: e.target.value }))} 
+                            placeholder="Description..." 
+                            rows={3}
+                            style={{ width: '100%', padding: '10px', backgroundColor: '#161920', color: '#fff', border: '1px solid #2d3343', borderRadius: '6px', marginBottom: '15px', resize: 'vertical' }}
+                          />
+                        </div>
+                      </div>
+                      <div className="admin-modal-actions">
+                        <button className="btn btn-lime" onClick={() => run(saveRoadmapSettings)}>Save Roadmap Settings</button>
                       </div>
                     </>
                   ) : null}

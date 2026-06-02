@@ -1,197 +1,23 @@
-/* --- Canva 1:1 Page 3 Roadmap Vortex Premium Styles --- */
+/* --- Canva 1:1 Roadmap Details Stylesheet --- */
 
-.cult-vortex-page {
-  width: 100%;
-  min-height: calc(100vh - 120px);
-  padding: clamp(24px, 4vh, 60px) 0;
-  position: relative;
-  z-index: 1;
-}
-
-.cult-vortex-container {
-  width: min(800px, 92%);
-  margin: 0 auto;
-  text-align: center;
-}
-
-.vortex-page-header {
-  margin-bottom: clamp(24px, 4vh, 48px);
-}
-
-.vortex-page-tag {
-  display: inline-block;
-  font-size: 0.8rem;
-  font-weight: 800;
-  letter-spacing: 0.25em;
-  color: var(--brand-accent, #d02d14);
-  text-transform: uppercase;
-  margin-bottom: 8px;
-}
-
-.vortex-page-header h1 {
-  font-family: 'Milonga', cursive;
-  font-size: clamp(3rem, 6vw, 5rem);
-  letter-spacing: 0.05em;
-  color: #1a233d;
-  margin: 0;
-  line-height: 1;
-}
-
-.vortex-graphic-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 36px;
-}
-
-.vortex-screen {
-  width: clamp(280px, 60vw, 420px);
-  height: clamp(280px, 60vw, 420px);
-  background: radial-gradient(circle, #0e1a3d 0%, #03050f 100%);
-  border: 4px solid #1a233d;
-  border-radius: 50%;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 16px 48px rgba(30, 80, 200, 0.18);
-}
-
-/* Swirling Whirlpool Vortex Layers */
-.vortex-layer {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: cover;
-  opacity: 0.55;
-  mix-blend-mode: screen;
-}
-
-.layer-1 {
-  background-image: radial-gradient(circle, rgba(208, 45, 20, 0.18) 0%, transparent 60%),
-                    conic-gradient(from 0deg, rgba(30, 80, 200, 0.25) 0%, transparent 40%, rgba(208, 45, 20, 0.25) 70%, transparent 100%);
-  animation: vortex-spin-clock 12s linear infinite;
-  z-index: 1;
-}
-
-.layer-2 {
-  background-image: conic-gradient(from 120deg, rgba(255, 255, 255, 0.08) 0%, transparent 50%, rgba(30, 80, 200, 0.2) 80%, transparent 100%);
-  animation: vortex-spin-counter 8s linear infinite;
-  z-index: 1;
-}
-
-.layer-3 {
-  background-image: radial-gradient(circle at center, transparent 30%, rgba(208, 45, 20, 0.12) 60%, transparent 80%);
-  animation: vortex-spin-clock 18s linear infinite;
-  z-index: 1;
-}
-
-@keyframes vortex-spin-clock {
-  0% { transform: rotate(0deg) scale(1); }
-  50% { transform: rotate(180deg) scale(1.08); }
-  100% { transform: rotate(360deg) scale(1); }
-}
-
-@keyframes vortex-spin-counter {
-  0% { transform: rotate(360deg) scale(1.05); }
-  50% { transform: rotate(180deg) scale(0.95); }
-  100% { transform: rotate(0deg) scale(1.05); }
-}
-
-/* Central glowing core / golden helmet */
-.vortex-center-core {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: clamp(80px, 18vw, 110px);
-  height: clamp(80px, 18vw, 110px);
-  background: radial-gradient(circle, #ffffff 0%, #f4f8fb 100%);
-  border: 3px solid #1a233d;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 3;
-  box-shadow: 0 0 30px rgba(208, 45, 20, 0.25), inset 0 2px 8px rgba(255,255,255,0.8);
-}
-
-.vortex-core-ring {
-  position: absolute;
-  inset: -8px;
-  border: 1px solid rgba(208, 45, 20, 0.3);
-  border-radius: 50%;
-  animation: vortex-pulse 2s ease-in-out infinite alternate;
-}
-
-@keyframes vortex-pulse {
-  0% { transform: scale(0.92); opacity: 0.4; }
-  100% { transform: scale(1.1); opacity: 1; }
-}
-
-.vortex-core-logo {
-  width: 68%;
-  height: 68%;
-  object-fit: contain;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
-}
-
-/* vortex status overlay */
-.vortex-status-text {
-  position: absolute;
-  bottom: clamp(14px, 3vh, 28px);
-  left: 0;
-  right: 0;
-  text-align: center;
-  z-index: 4;
-  pointer-events: none;
-}
-
-.vortex-status-text h2 {
-  font-family: 'Milonga', cursive;
-  font-size: clamp(1.5rem, 3.5vw, 2.2rem);
-  letter-spacing: 0.08em;
-  color: #ffffff;
-  text-shadow: 0 4px 12px rgba(208, 45, 20, 0.6);
-  margin: 0;
-}
-
-.vortex-status-text p {
-  font-family: 'Courier New', Courier, monospace;
-  font-weight: 800;
-  font-size: 0.72rem;
-  letter-spacing: 0.15em;
-  color: var(--brand-accent, #d02d14);
-  margin: 4px 0 0;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-}
-
-/* Roadmap tree description info cards */
-.vortex-description-card {
+.roadmap-details-card {
+  width: min(840px, 94%);
+  margin: 32px auto 0;
   background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(30, 80, 200, 0.12);
+  border: 1.5px solid #1a233d;
   border-radius: 24px;
-  padding: clamp(20px, 4vw, 32px);
+  padding: clamp(24px, 4vw, 40px);
   backdrop-filter: blur(14px);
-  box-shadow: 0 12px 36px rgba(30, 80, 200, 0.05);
+  box-shadow: 0 12px 36px rgba(26, 35, 61, 0.08);
   text-align: left;
-}
-
-.vortex-primary-desc {
-  font-size: 1rem;
-  line-height: 1.65;
-  color: #1a233d;
-  margin: 0 0 24px;
-  font-weight: 500;
-  text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
 .roadmap-future-hints {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-  border-top: 1px dashed rgba(30, 80, 200, 0.12);
-  padding-top: 24px;
+  gap: 32px;
 }
 
 .roadmap-hint-item {
@@ -200,27 +26,33 @@
 }
 
 .hint-icon {
-  font-size: 2rem;
+  font-size: 2.2rem;
   line-height: 1;
 }
 
 .roadmap-hint-item h4 {
   font-family: 'Milonga', cursive;
-  font-size: 1.4rem;
+  font-size: 1.35rem;
   letter-spacing: 0.03em;
   color: #1a233d;
-  margin: 0 0 6px;
+  margin: 0 0 8px;
 }
 
 .roadmap-hint-item p {
-  font-size: 0.88rem;
-  line-height: 1.5;
+  font-family: 'Abhaya Libre', Georgia, serif;
+  font-size: 1.05rem;
+  line-height: 1.55;
   color: #4f5a75;
   margin: 0;
+  font-weight: 500;
 }
 
 @media (max-width: 760px) {
   .roadmap-future-hints {
     grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .roadmap-details-card {
+    margin-top: 24px;
   }
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getPublicSiteConfig } from '../api/client';
 import Footer from '../components/Footer';
+import { DEFAULT_SITE_LOGO, resolveSiteLogo } from '../utils/siteMedia';
 import './HomePage.css';
 
 const DEFAULTS = {
@@ -32,6 +33,8 @@ export default function HomePage() {
   const desc1        = hero.desc_1        || DEFAULTS.desc_1;
   const desc2        = hero.desc_2        || DEFAULTS.desc_2;
 
+  const siteLogoSrc = cfg ? resolveSiteLogo(cfg) : '/images/logo.png';
+
   return (
     <div className="canva-home-page">
       <div className="canva-home-content">
@@ -39,7 +42,7 @@ export default function HomePage() {
         <section className="canva-hero-section">
           {/* Centered large watermark logo behind the text */}
           <div className="canva-hero-watermark-logo" aria-hidden="true">
-            <img src="/images/logo.png" alt="" />
+            <img src={siteLogoSrc} alt="" />
           </div>
 
           <h1 className="canva-main-title">

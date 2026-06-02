@@ -11,6 +11,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [ready, setReady] = useState(false);
   const [siteLogoSrc, setSiteLogoSrc] = useState(DEFAULT_SITE_LOGO);
+  const [siteName, setSiteName] = useState('MemeCult');
 
   async function submitIdToken(idToken) {
     const data = await googleLogin(idToken);
@@ -25,7 +26,12 @@ export default function LoginPage() {
 
   useEffect(() => {
     getPublicSiteConfig()
-      .then((cfg) => setSiteLogoSrc(resolveSiteLogo(cfg)))
+      .then((cfg) => {
+        setSiteLogoSrc(resolveSiteLogo(cfg));
+        if (cfg.site_name) {
+          setSiteName(cfg.site_name);
+        }
+      })
       .catch(() => {});
   }, []);
 
@@ -74,9 +80,9 @@ export default function LoginPage() {
   return (
     <section className="login-shell">
       <div className="login-card">
-        <img src={siteLogoSrc} alt="MemeCult" className="login-logo" />
-        <h2>Continue to MemeCult</h2>
-        <p>Sign in with Google to continue to MemeCult.</p>
+        <img src={siteLogoSrc} alt={siteName} className="login-logo" />
+        <h2>Continue to {siteName}</h2>
+        <p>Sign in with Google to continue to {siteName}.</p>
 
         <div id="google-signin-btn" className="google-btn-wrap" />
         {!ready && !error ? <p className="login-muted">Loading Google sign-in...</p> : null}
@@ -84,7 +90,7 @@ export default function LoginPage() {
         {status ? <p className="ok">{status}</p> : null}
         {error ? <p className="error">{error}</p> : null}
 
-        <small>By continuing, you agree to MemeCult terms and privacy policy.</small>
+        <small>By continuing, you agree to {siteName} terms and privacy policy.</small>
       </div>
     </section>
   );

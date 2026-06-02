@@ -117,6 +117,9 @@ export default function App() {
     getPublicSiteConfig()
       .then((cfg) => {
         if (!mounted) return;
+        if (cfg?.site_name) {
+          document.title = cfg.site_name;
+        }
         const theme = cfg?.site_theme || {};
         const root = document.documentElement;
         const primary = theme.primary || '#202063';
@@ -250,7 +253,7 @@ export default function App() {
     const settings = pageBackgrounds[pageKey] || {};
     const imgUrl = settings.image || '/images/bg.png';
     const opacity = settings.overlay_opacity !== undefined ? settings.overlay_opacity : 0.92;
-    const blurVal = settings.blur !== undefined ? settings.blur : (pageKey === 'home' ? 0 : 18);
+    const blurVal = settings.blur !== undefined ? settings.blur : (pageKey === 'home' || pageKey === 'roadmap' ? 0 : 18);
 
     return {
       background: `linear-gradient(to bottom, rgba(217, 239, 252, ${opacity}) 0%, rgba(217, 239, 252, ${opacity}) 100%), url('${imgUrl}') no-repeat center center`,

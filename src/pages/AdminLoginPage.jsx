@@ -1,13 +1,29 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { adminLogin } from '../api/client';
+import { adminLogin, getPublicSiteConfig } from '../api/client';
 
 export default function AdminLoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [siteName, setSiteName] = useState('MemeCult');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    let live = true;
+    getPublicSiteConfig()
+      .then((cfg) => {
+        if (!live) return;
+        if (cfg.site_name) {
+          setSiteName(cfg.site_name);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, []);
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -31,7 +47,7 @@ export default function AdminLoginPage() {
     <section className="admin-auth-wrap">
       <form className="admin-auth-card" onSubmit={onSubmit}>
         <h1>Admin Login</h1>
-        <p>Sign in to access MemeCult admin panel.</p>
+        <p>Sign in to access {siteName} admin panel.</p>
         <input
           value={username}
           onChange={(e) => setUsername(e.target.value)}

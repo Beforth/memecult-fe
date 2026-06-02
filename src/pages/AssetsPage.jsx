@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getPublicSiteConfig } from '../api/client';
+import { DEFAULT_SITE_LOGO, resolveSiteLogo } from '../utils/siteMedia';
 import './HomePage.css';
 import './AssetsPage.css';
 import Footer from '../components/Footer';
@@ -31,6 +32,7 @@ export default function AssetsPage() {
   }, []);
 
   const rp = cfg?.resources_page || {};
+  const siteLogoSrc = cfg ? resolveSiteLogo(cfg) : '/images/logo.png';
   const pageTitle = rp.title || 'Assets & Resource';
   const dexLabel = rp.dex_label || '$FUTARDIO\nDEXSCREENER';
   const description = rp.description || 'Futardio Cult is a community-driven meme coin, built on futarchy principles.';
@@ -81,7 +83,7 @@ export default function AssetsPage() {
             </span>
             <div className="assets-logo-circle-wrap">
               <img
-                src="/images/logo.png"
+                src={siteLogoSrc}
                 alt="Futardio logo"
                 className="assets-center-avatar"
               />

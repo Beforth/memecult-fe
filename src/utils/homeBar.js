@@ -1,15 +1,15 @@
 export const DEFAULT_HOME_BAR = {
   ticker: {
     title: 'Ticker',
-    symbol: '$MEMECULT',
-    contract_address: '0x7a3f...cult',
+    symbol: '$FUTARDIO',
+    contract_address: 'Cbjr1Nvcay3QWDriyRKtokJ7V4PMnesGxeK8z7Zmeta',
   },
   columns: [
     {
       title: 'Social Media',
       links: [
-        { label: 'Twitter', path: 'https://twitter.com', external: true, highlight: false },
-        { label: 'Telegram', path: 'https://telegram.org', external: true, highlight: false },
+        { label: 'Twitter', path: 'https://x.com/Futardiocult3', external: true, highlight: false },
+        { label: 'Telegram', path: 'https://t.me/FUTARDIOCULT', external: true, highlight: false },
       ],
     },
     {
@@ -22,7 +22,7 @@ export const DEFAULT_HOME_BAR = {
     {
       title: 'Contact Us',
       links: [
-        { label: 'hello@memecult.lol', path: 'mailto:hello@memecult.lol', external: true, highlight: false },
+        { label: 'hello@memecult.lol', path: 'https://t.me/FUTARDIOCULT', external: true, highlight: false },
         { label: 'Join the community', path: '/login', external: false, highlight: true },
       ],
     },

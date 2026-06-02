@@ -1,7 +1,7 @@
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8000/api';
 
-export const DEFAULT_SITE_LOGO = '/images/memecult-logo.png';
-export const DEFAULT_FOOTER_LOGO = '/images/footer-logo.png';
+export const DEFAULT_SITE_LOGO = '/images/logo.png';
+export const DEFAULT_FOOTER_LOGO = '/images/logo.png';
 
 export function getApiOrigin() {
   return API_BASE.replace(/\/api\/?$/, '');
